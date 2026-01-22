@@ -1,0 +1,97 @@
+start: (_NEWLINE | stmt)*
+
+suite: simple_stmt | _NEWLINE _INDENT stmt+ _DEDENT
+
+?stmt: simple_stmt | compound_stmt
+?simple_stmt: small_stmt _NEWLINE
+?small_stmt: return_stmt | assign_stmt | expr_stmt
+
+?compound_stmt: func_def | if_stmt | while_stmt | for_stmt
+
+func_def: DEF NAME "(" [params] ")" "->" type_hint ":" suite
+
+params: param ("," param)*
+param: NAME ":" type_hint
+
+return_stmt: RETURN [expr] 
+assign_stmt: NAME ":" type_hint "=" expr
+expr_stmt: expr
+
+if_stmt: IF expr ":" suite (ELIF expr ":" suite)* [ELSE ":" suite]
+while_stmt: WHILE expr ":" suite
+for_stmt: FOR NAME IN expr ":" suite
+
+?expr: logic_or
+
+?logic_or: logic_and (OR logic_and)*
+?logic_and: logic_not (AND logic_not)*
+?logic_not: NOT logic_not -> not_expr
+          | comparison
+
+?comparison: sum (comp_op sum)*
+!comp_op: EQ | NE | LT | GT | LE | GE | IN
+
+?sum: product (add_op product)*
+!add_op: PLUS | MINUS
+
+?product: atom (mul_op atom)*
+!mul_op: TIMES | DIV | MOD
+
+?atom: NUMBER        -> number
+     | STRING        -> string
+     | TRUE          -> true
+     | FALSE         -> false
+     | NONE          -> none
+     | NAME          -> var
+     | func_call
+     | "(" expr ")"
+
+func_call: NAME "(" [arguments] ")"
+arguments: expr ("," expr)*
+
+type_hint: "tni" -> type_int
+        | "rts" -> type_str
+        | "loob" -> type_bool
+        | "enoN" -> type_none
+        | "taolf" -> type_float
+
+DEF:    "fed"
+RETURN: "nruter"
+IF:     "fi"
+ELIF:   "file"
+ELSE:   "esle"
+WHILE:  "elihw"
+FOR:    "rof"
+IN:     "ni"
+TRUE:   "eurT"
+FALSE:  "eslaF"
+NONE:   "enoN"
+AND:    "dna"
+OR:     "ro"
+NOT:    "ton"
+
+PLUS:   "+"
+MINUS:  "-"
+TIMES:  "*"
+DIV:    "/"
+MOD:    "%"
+ASSIGN: "="
+EQ:     "=="
+NE:     "!="
+LT:     "<"
+GT:     ">"
+LE:     "<="
+GE:     ">="
+
+NAME: /[a-zA-Z_]\w*/
+NUMBER: /\d+(\.\d+)?/
+STRING: /".*?"/
+
+COMMENT: /#[^\n]*/
+%ignore COMMENT
+%ignore /[ \t\f]+/
+%ignore /\\[\t \f]*\r?\n/
+
+_NEWLINE: ( /\r?\n[\t ]*/ | COMMENT )+
+
+%declare _INDENT _DEDENT

@@ -1,0 +1,9 @@
+# Funzione ricorsiva per il calcolo del fattoriale
+fed factorial(n: tni) -> tni:
+    x : tni= 5
+    nruter x
+
+# Entry point del programma
+fed main() -> tni:
+    result: tni = factorial(5)
+    nruter result
