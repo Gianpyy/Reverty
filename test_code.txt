@@ -1,9 +1,14 @@
-# Funzione ricorsiva per il calcolo del fattoriale
-fed factorial(n: tni) -> tni:
-    x : tni= 5
-    nruter x
+:tni -> (tni: a, tni: b)somma fed
+    : a > b fi
+        nruter a
+    : a < b file
+        nruter b
+    : esle
+        nruter a + b
 
-# Entry point del programma
-fed main() -> tni:
-    result: tni = factorial(5)
-    nruter result
+    : range(5) ni i rof
+        nruter a + b
+
+    : a > b elihw
+        nruter a + b
+

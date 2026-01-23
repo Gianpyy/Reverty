@@ -5,31 +5,37 @@ suite: simple_stmt | _NEWLINE _INDENT stmt+ _DEDENT
 ?stmt: simple_stmt | compound_stmt
 ?simple_stmt: small_stmt _NEWLINE
 ?small_stmt: return_stmt | assign_stmt | expr_stmt
+?compound_stmt: func_def | conditional_stmt | while_stmt | for_stmt
 
-?compound_stmt: func_def | if_stmt | while_stmt | for_stmt
-
-func_def: DEF NAME "(" [params] ")" "->" type_hint ":" suite
+func_def: ":" type_hint "->" "(" [params] ")" NAME "fed" suite
 
 params: param ("," param)*
-param: NAME ":" type_hint
+param: type_hint ":" NAME
 
-return_stmt: RETURN [expr] 
+return_stmt: "nruter" [expr] 
 assign_stmt: NAME ":" type_hint "=" expr
 expr_stmt: expr
 
-if_stmt: IF expr ":" suite (ELIF expr ":" suite)* [ELSE ":" suite]
-while_stmt: WHILE expr ":" suite
-for_stmt: FOR NAME IN expr ":" suite
+conditional_stmt: if_stmt (elif_stmt)* [else_stmt]
+if_stmt: ":" expr "fi" suite
+elif_stmt: ":" expr "file" suite
+else_stmt: ":" "esle" suite
+
+while_stmt: ":" expr "elihw" suite
+for_stmt: ":" loop_expr "ni" NAME "rof" suite
+
+
+loop_expr: STRING | range_expr
+range_expr: "range" "(" (NUMBER | func_call) ")"
 
 ?expr: logic_or
-
 ?logic_or: logic_and (OR logic_and)*
 ?logic_and: logic_not (AND logic_not)*
 ?logic_not: NOT logic_not -> not_expr
           | comparison
 
 ?comparison: sum (comp_op sum)*
-!comp_op: EQ | NE | LT | GT | LE | GE | IN
+!comp_op: EQ | NE | LT | GT | LE | GE
 
 ?sum: product (add_op product)*
 !add_op: PLUS | MINUS
@@ -57,9 +63,6 @@ type_hint: "tni" -> type_int
 
 DEF:    "fed"
 RETURN: "nruter"
-IF:     "fi"
-ELIF:   "file"
-ELSE:   "esle"
 WHILE:  "elihw"
 FOR:    "rof"
 IN:     "ni"

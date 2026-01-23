@@ -26,10 +26,10 @@ class Agent1Lexer:
             if not code.endswith('\n'):
                 code = code.strip() + "\n"
             
-            tree = self.parser.parse(code)
+            ast = self.parser.parse(code)
             print(f"[Lexer Agent] Syntax OK! Tree generated.")
-            return {"status": "success", "code": code, "ast_debug": tree.pretty()}
-            
+            return {"status": "success", "code": code, "ast": ast}
+
         except Exception as e:
             print(f"[Lexer Agent] Syntax Error: {e}")
             return {"status": "error", "message": str(e)}
