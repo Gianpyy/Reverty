@@ -1,10 +1,12 @@
-from lark import Transformer, Token
+from lark import Transformer
 
-class AgentTranspiler:
+
+class TranspilerAgent:
     """
     Agent 3: The Transpiler (Lark -> Python).
     Converts ReversePy AST to Python 3 code.
     """
+
     class ReversePyToPython(Transformer):
         # --- Gestione dei Blocchi ---
         def start(self, items):
@@ -14,7 +16,7 @@ class AgentTranspiler:
             indented_lines = []
             for item in items:
                 # Gestisce item che potrebbero essere già stringhe multi-riga
-                for line in str(item).split('\n'):
+                for line in str(item).split("\n"):
                     if line.strip():
                         indented_lines.append("    " + line)
                     else:
@@ -45,7 +47,7 @@ class AgentTranspiler:
         def if_stmt(self, items):
             # Grammatica: ":" expr "fi" suite
             # Items: [expr, suite]
-            condition, body = items 
+            condition, body = items
             return f"if {condition}:\n{body}"
 
         def elif_stmt(self, items):
@@ -72,7 +74,7 @@ class AgentTranspiler:
             iterable = str(items[0])
             var_name = str(items[1])
             body = items[2]
-            
+
             return f"for {var_name} in {iterable}:\n{body}"
 
         # --- Gestione Loop Expressions ---
@@ -120,15 +122,21 @@ class AgentTranspiler:
         def mul_op(self, items):
             return str(items[0].value)
 
-        def loop_expr(self, items):
-            # Se loop_expr è una regola con !, items[0] sarà il valore
-            return str(items[0])
         # --- Mapping dei Tipi ---
-        def type_int(self, _): return "int"
-        def type_str(self, _): return "str"
-        def type_bool(self, _): return "bool"
-        def type_none(self, _): return "None"
-        def type_float(self, _): return "float"
+        def type_int(self, _):
+            return "int"
+
+        def type_str(self, _):
+            return "str"
+
+        def type_bool(self, _):
+            return "bool"
+
+        def type_none(self, _):
+            return "None"
+
+        def type_float(self, _):
+            return "float"
 
         # --- Operazioni Logiche e Matematiche ---
         def logic_or(self, items):
@@ -151,22 +159,34 @@ class AgentTranspiler:
             return " ".join(str(i) for i in items)
 
         # --- Atomi ---
-        def number(self, items): return str(items[0])
-        def string(self, items): return str(items[0])
-        def true(self, _): return "True"
-        def false(self, _): return "False"
-        def none(self, _): return "None"
-        def var(self, items): return str(items[0])
+        def number(self, items):
+            return str(items[0])
+
+        def string(self, items):
+            return str(items[0])
+
+        def true(self, _):
+            return "True"
+
+        def false(self, _):
+            return "False"
+
+        def none(self, _):
+            return "None"
+
+        def var(self, items):
+            return str(items[0])
 
     def __init__(self):
         pass
-        
+
     def run(self, ast):
         try:
+            print("[Transpiler] Starting conversion to python code...")
             transpiler = self.ReversePyToPython()
             python_code = transpiler.transform(ast)
-            print(f"[Transpiler] Conversion complete.")
+            print("[Transpiler] Conversion complete.")
             return {"status": "success", "python_code": python_code}
         except Exception as e:
-            print(f"[Transpiler] Error: {e}")
+            print("[Transpiler] Error: {e}")
             return {"status": "error", "message": str(e)}
