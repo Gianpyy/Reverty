@@ -1,6 +1,8 @@
 from helpers.ast_printer import print_ast
 from agents.parser_agent import ParserAgent
 from agents.transpiler_agent import TranspilerAgent
+from agents.architect_agent import ArchitectAgent
+from clients.mock_llm_client import MockLLMClient
 
 
 class Orchestrator:
@@ -8,12 +10,26 @@ class Orchestrator:
     Orchestrator class.
     """
 
-    def __init__(self):
+    def __init__(
+        self,
+        use_mock: bool = False,
+    ):
         """
         Initialize the Orchestrator.
+
+        Args:
+            use_mock: If True, use MockLLMClient. If None, use config.USE_MOCK
+            api_key: API key for OpenAI. If None, use config.OPENAI_API_KEY
+            github_token: GitHub Personal Access Token for GitHub Models API
+            use_ollama: If True, use local Ollama
         """
-        self.parser = ParserAgent()
-        self.transpiler = TranspilerAgent()
+        if use_mock:
+            print("[Orchestrator] Using MOCK LLM")
+            self.client = MockLLMClient()
+
+        self.architect = ArchitectAgent(self.client)
+        self.parser = ParserAgent(self.client)
+        self.transpiler = TranspilerAgent(self.client)
 
     def run(self, user_prompt: str):
         """
