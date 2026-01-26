@@ -1,5 +1,5 @@
-from ast_printer import print_ast
-from agents.lexer_agent import LexerAgent
+from helpers.ast_printer import print_ast
+from agents.parser_agent import ParserAgent
 from agents.transpiler_agent import TranspilerAgent
 
 
@@ -12,7 +12,7 @@ class Orchestrator:
         """
         Initialize the Orchestrator.
         """
-        self.lexer = LexerAgent()
+        self.parser = ParserAgent()
         self.transpiler = TranspilerAgent()
 
     def run(self, user_prompt: str):
@@ -21,11 +21,11 @@ class Orchestrator:
         """
         print("[Orchestrator] Starting execution for \n", user_prompt)
 
-        # Lexer agent
-        result = self.lexer.run(user_prompt)
+        # Parser agent
+        result = self.parser.run(user_prompt)
         if result["status"] == "error":
             error_message = result["message"]
-            print("[Orchestrator] Error in Lexer Agent: {error_message}")
+            print("[Orchestrator] Error in Parser Agent: {error_message}")
             return {"status": "error", "message": error_message}
         else:
             ast = result["ast"]

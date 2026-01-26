@@ -1,13 +1,14 @@
 from lark import Transformer
+from agents.agent import Agent
 
 
-class TranspilerAgent:
+class TranspilerAgent(Agent):
     """
-    Agent 3: The Transpiler (Lark -> Python).
-    Converts ReversePy AST to Python 3 code.
+    The Transpiler (Lark -> Python).
+    Converts Reverty AST to Python 3 code.
     """
 
-    class ReversePyToPython(Transformer):
+    class RevertyToPython(Transformer):
         # --- Gestione dei Blocchi ---
         def start(self, items):
             return "\n".join([str(i) for i in items if i is not None]).strip()
@@ -111,7 +112,6 @@ class TranspilerAgent:
         def expr_stmt(self, items):
             return str(items[0])
 
-        # Aggiungi questi all'interno di ReversePyToPython
         def comp_op(self, items):
             # Estrae il valore testuale dal Token all'interno del Tree
             return str(items[0].value)
@@ -183,7 +183,7 @@ class TranspilerAgent:
     def run(self, ast):
         try:
             print("[Transpiler] Starting conversion to python code...")
-            transpiler = self.ReversePyToPython()
+            transpiler = self.RevertyToPython()
             python_code = transpiler.transform(ast)
             print("[Transpiler] Conversion complete.")
             return {"status": "success", "python_code": python_code}

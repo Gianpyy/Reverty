@@ -1,8 +1,9 @@
 from lark import Lark
 from lark.indenter import Indenter
+from agents.agent import Agent
 
 
-class ReversePyIndenter(Indenter):
+class RevertyIndenter(Indenter):
     NL_type = "_NEWLINE"
     OPEN_PAREN_types = ["("]
     CLOSE_PAREN_types = [")"]
@@ -11,9 +12,9 @@ class ReversePyIndenter(Indenter):
     tab_len = 4
 
 
-class LexerAgent:
+class ParserAgent(Agent):
     """
-    Lexer Agent: Syntax Validator & Lexer.
+    Parser Agent: Syntax Validator & Parser.
     Uses Lark to validate the input structure.
     """
 
@@ -22,19 +23,19 @@ class LexerAgent:
             self.grammar = f.read()
 
         self.parser = Lark(
-            self.grammar, parser="lalr", postlex=ReversePyIndenter(), start="start"
+            self.grammar, parser="lalr", postlex=RevertyIndenter(), start="start"
         )
 
     def run(self, code: str):
-        print("[Lexer Agent] Validating Syntax...")
+        print("[Parser Agent] Validating Syntax...")
         try:
             if not code.endswith("\n"):
                 code = code.strip() + "\n"
 
             ast = self.parser.parse(code)
-            print("[Lexer Agent] Syntax OK! Tree generated.")
+            print("[Parser Agent] Syntax OK! Tree generated.")
             return {"status": "success", "code": code, "ast": ast}
 
         except Exception as e:
-            print("[Lexer Agent] Syntax Error: {e}")
+            print("[Parser Agent] Syntax Error: {e}")
             return {"status": "error", "message": str(e)}

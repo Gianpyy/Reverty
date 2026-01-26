@@ -1,0 +1,62 @@
+from clients.llm_client_abstract import LLMClient
+from typing import Dict, Any
+import json
+
+
+class Agent:
+    def __init__(self, client: LLMClient):
+        self.client = client
+
+    def _extract_json(self, response: str) -> Dict[str, Any]:
+        """Robustly extracts JSON from a string, handling markdown and extra text."""
+        # 1. Try direct parsing
+        try:
+            return json.loads(response)
+        except json.JSONDecodeError:
+            pass
+
+        # 2. Try extracting from markdown code blocks
+        try:
+            if "```json" in response:
+                block = response.split("```json")[1].split("```")[0].strip()
+                return json.loads(block)
+            elif "```" in response:
+                block = response.split("```")[1].split("```")[0].strip()
+                return json.loads(block)
+        except json.JSONDecodeError:
+            pass
+
+        # 3. Try finding the first '{' and last '}' (greedy)
+        try:
+            start = response.find("{")
+            end = response.rfind("}")
+            if start != -1 and end != -1:
+                json_str = response[start : end + 1]
+                return json.loads(json_str)
+        except json.JSONDecodeError:
+            pass
+
+        # 4. Try finding the largest valid JSON object (nested braces)
+        # This is a heuristic for when the model outputs multiple JSON-like things
+        try:
+            stack = []
+            start_idx = -1
+            for i, char in enumerate(response):
+                if char == "{":
+                    if not stack:
+                        start_idx = i
+                    stack.append(char)
+                elif char == "}":
+                    if stack:
+                        stack.pop()
+                        if not stack:
+                            # Found a complete top-level object
+                            try:
+                                return json.loads(response[start_idx : i + 1])
+                            except json.JSONDecodeError:
+                                continue  # Keep looking
+        except Exception:
+            pass
+
+        # If all fails, raise error to be handled by caller
+        raise json.JSONDecodeError("Could not extract JSON from response", response, 0)
