@@ -29,3 +29,9 @@ JSON OUTPUT FORMAT:
 }
 
 OUTPUT ONLY THE JSON. NO OTHER TEXT."""
+
+BUILDER_SYSTEM_PROMPT = """[Builder] Your task is to convert the User Request into valid code STRICTLY following the provided grammar.\n"
+        "If a token is not present in the grammar, DO NOT USE IT!\n"
+        "Output ONLY the code, no markdown, no explanation.\n\n"
+        "Use the examples as a guide for the output.\n\n"
+        "### GRAMMAR REFERENCE\n"""

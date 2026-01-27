@@ -2,9 +2,8 @@ from orchestrator import Orchestrator
 
 
 def main():
-    test_code = open("test_code.txt").read()
-    orchestrator = Orchestrator()
-    orchestrator.run(test_code)
+    orchestrator = Orchestrator(use_mock=True)
+    orchestrator.run("Write a function that calculates the factiorial of a number.")
 
 
 if __name__ == "__main__":

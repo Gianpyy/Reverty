@@ -18,12 +18,10 @@ class ParserAgent(Agent):
     Uses Lark to validate the input structure.
     """
 
-    def __init__(self, grammar_path="grammar.lark"):
-        with open(grammar_path, "r") as f:
-            self.grammar = f.read()
+    def __init__(self, grammar):
 
         self.parser = Lark(
-            self.grammar, parser="lalr", postlex=RevertyIndenter(), start="start"
+            grammar, parser="lalr", postlex=RevertyIndenter(), start="start"
         )
 
     def run(self, code: str):
@@ -37,5 +35,5 @@ class ParserAgent(Agent):
             return {"status": "success", "code": code, "ast": ast}
 
         except Exception as e:
-            print("[Parser Agent] Syntax Error: {e}")
+            print(f"[Parser Agent] Syntax Error: {e}")
             return {"status": "error", "message": str(e)}

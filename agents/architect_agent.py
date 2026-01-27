@@ -6,13 +6,25 @@ from helpers.system_prompts import ARCHITECT_SYSTEM_PROMPT
 
 
 class ArchitectAgent(Agent):
+    """
+    Architect Agent: Contract Designer.
+    Uses LLM to generate a contract from a user prompt.
+    """
     def create_contract(self, user_prompt: str) -> Dict[str, Any]:
-        """Creates a formal contract/specification for the requested code."""
+        """Creates a formal contract/specification for the requested code.
+        
+        Args:
+            user_prompt: User's request.
+        
+        Returns:
+            Dict[str, Any]: Contract in JSON format.
+        """
 
         print(f"[Architect Agent] Designing contract for: '{user_prompt}'...")
         request = generate_architect_request(user_prompt)
         response = self.client.generate(
-            user_prompt=request, system_prompt=ARCHITECT_SYSTEM_PROMPT
+            user_prompt = request,
+            system_prompt = ARCHITECT_SYSTEM_PROMPT
         )
 
         # Try to parse JSON

@@ -1,10 +1,12 @@
-from clients.llm_client_abstract import LLMClient
 from typing import Dict, Any
 import json
 
 
 class Agent:
-    def __init__(self, client: LLMClient):
+    """
+    Base class for all agents.
+    """
+    def __init__(self, client):
         self.client = client
 
     def _extract_json(self, response: str) -> Dict[str, Any]:
