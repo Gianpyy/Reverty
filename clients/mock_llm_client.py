@@ -12,11 +12,10 @@ class MockLLMClient(LLMClient):
 
         user_prompt_lower = user_prompt.lower()
         system_prompt_lower = system_prompt.lower()
-        print("[MockLLMClient] Generating response for \n", user_prompt_lower)
 
         # Hardcoded response for architect agent
         if "architect" in system_prompt_lower:
-            return json.dumps(
+            response = json.dumps(
                 {
                     "function_name": "factorial",
                     "args": [{"name": "n", "type": "int"}],
@@ -24,31 +23,42 @@ class MockLLMClient(LLMClient):
                     "docstring": "Calculates factorial of n.",
                     "constraints": ["n >= 0"],
                     "edge_cases": [],
-                }
+                },
+                indent=4,
             )
-        
-        if "builder" in system_prompt_lower:
-            return json.dumps(
+            print("[MockLLMClient - Architect] ", response)
+            return response
+
+        # Hardcoded response for fix (takes priority over builder)
+        if "fix" in user_prompt_lower:
+            response = json.dumps(
                 {
                     "code": """: tni -> (tni: n) factorial fed
-                        res = 1
-                        : n > 1 elihw
-                            res = res * n
-                            n = n - 1
-                        nruter res
-                    """,
-                }
-            )
-        
-        if "fix" in system_prompt_lower:
-            return json.dumps(
-                {
-                    "code": """tni -> (tni: n) factorial fed
                         res : tni = 1
                         : n > 1 elihw
                             res = res * n
                             n = n - 1
                         nruter res
                     """,
-                }
+                },
+                indent=4,
             )
+            print("[MockLLMClient - Fix] ", response)
+            return response
+
+        # Hardcoded response for builder agent
+        if "builder" in system_prompt_lower:
+            response = json.dumps(
+                {
+                    "code": """: tni -> (tni: n) factorial def
+                        res = 1
+                        : n > 1 elihw
+                            res = res * n
+                            n = n - 1
+                        nruter res
+                    """,
+                },
+                indent=4,
+            )
+            print("[MockLLMClient - Builder] ", response)
+            return response

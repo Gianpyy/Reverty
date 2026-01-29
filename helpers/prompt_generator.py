@@ -45,13 +45,12 @@ def generate_architect_request(user_prompt: str) -> str:
     IMPORTANT: Return ONLY the JSON object above, with no additional text, no markdown, no explanations."""
 
 
-def generate_fix_request(reverty_code: str, errors: str) -> str:
-
+def generate_fix_request(reverty_code: str, errors: str, error_type: str) -> str:
     """
     Generates a request for the fix agent.
     """
 
-    fix_parsing_prompt = f"""Your code has parsing errors:
+    fix_parsing_prompt = f"""Your code has {error_type} errors:
 
                         Code:
                         {reverty_code}
@@ -59,8 +58,7 @@ def generate_fix_request(reverty_code: str, errors: str) -> str:
                         Errors:
                         {errors}
 
-                        Fix these parsing errors and return only the corrected code.
+                        Fix these {error_type} errors and return only the corrected code.
                     """
-
 
     return fix_parsing_prompt

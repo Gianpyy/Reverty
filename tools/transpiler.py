@@ -1,9 +1,10 @@
-from lark import Transformer
+from lark import Transformer, Tree
+from typing import Dict, Any
 
 
-class Transpiler():
+class Transpiler:
     """
-    The Transpiler (Lark -> Python).
+    Transpiler: Lark -> Python.
     Converts Reverty AST to Python 3 code.
     """
 
@@ -104,7 +105,7 @@ class Transpiler():
             if len(items) == 3:
                 name, type_h, expression = items
                 return f"{name}: {type_h} = {expression}"
-    
+
             # Caso senza type hint
             name, expression = items
             return f"{name} = {expression}"
@@ -185,14 +186,19 @@ class Transpiler():
     def __init__(self):
         pass
 
-    def run(self, ast):
+    def run(self, ast: Tree[Any]) -> Dict[str, Any]:
+        """
+        Transpiles the AST to Python code.
+        """
         try:
             print("[Transpiler] Starting conversion to python code...")
             transpiler = self.RevertyToPython()
             python_code = transpiler.transform(ast)
             python_code += "\n"
+
             print("[Transpiler] Conversion complete.")
             return {"status": "success", "python_code": python_code}
+
         except Exception as e:
             print("[Transpiler] Error: {e}")
             return {"status": "error", "message": str(e)}

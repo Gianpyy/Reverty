@@ -1,5 +1,6 @@
 from lark import Lark
 from lark.indenter import Indenter
+from typing import Dict, Any
 
 
 class RevertyIndenter(Indenter):
@@ -13,26 +14,28 @@ class RevertyIndenter(Indenter):
 
 class Parser:
     """
-    Parser Agent: Syntax Validator & Parser.
+    Parser: Syntax Validator & Parser.
     Uses Lark to validate the input structure.
     """
 
     def __init__(self, grammar):
-
         self.parser = Lark(
             grammar, parser="lalr", postlex=RevertyIndenter(), start="start"
         )
 
-    def run(self, code: str):
-        print("[Parser Agent] Validating Syntax...")
+    def run(self, code: str) -> Dict[str, Any]:
+        """
+        Parses the input code and returns the AST.
+        """
+        print("[Parser] Validating Syntax...")
         try:
             if not code.endswith("\n"):
                 code = code.strip() + "\n"
 
             ast = self.parser.parse(code)
-            print("[Parser Agent] Syntax OK! Tree generated.")
+            print("[Parser] Syntax OK! Tree generated.")
             return {"status": "success", "ast": ast}
 
         except Exception as e:
-            print(f"[Parser Agent] Syntax Error: {e}")
+            print(f"[Parser] Syntax Error: {e}")
             return {"status": "error", "message": str(e)}
