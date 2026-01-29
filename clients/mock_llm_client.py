@@ -31,10 +31,24 @@ class MockLLMClient(LLMClient):
             return json.dumps(
                 {
                     "code": """: tni -> (tni: n) factorial fed
+                        res = 1
+                        : n > 1 elihw
+                            res = res * n
+                            n = n - 1
+                        nruter res
+                    """,
+                }
+            )
+        
+        if "fix" in system_prompt_lower:
+            return json.dumps(
+                {
+                    "code": """tni -> (tni: n) factorial fed
                         res : tni = 1
                         : n > 1 elihw
-                            res : tni = res * n
-                            n : tni = n - 1
-                        nruter res""",
+                            res = res * n
+                            n = n - 1
+                        nruter res
+                    """,
                 }
             )

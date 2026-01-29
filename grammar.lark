@@ -13,7 +13,7 @@ params: param ("," param)*
 param: type_hint ":" NAME
 
 return_stmt: "nruter" [expr] 
-assign_stmt: NAME ":" type_hint "=" expr
+assign_stmt: NAME (":" type_hint)? "=" expr
 expr_stmt: expr
 
 conditional_stmt: if_stmt (elif_stmt)* [else_stmt]

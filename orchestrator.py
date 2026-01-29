@@ -1,90 +1,141 @@
-from helpers.ast_printer import print_ast
-from agents.parser_agent import ParserAgent
-from agents.transpiler_agent import TranspilerAgent
 from agents.architect_agent import ArchitectAgent
 from agents.builder_agent import BuilderAgent
+from tools.reviewer import ReviewerAgent
 from clients.mock_llm_client import MockLLMClient
-from config import grammar_path
-
+from helpers.utils import load_grammar
 
 class Orchestrator:
-    """
-    Orchestrator class.
-    """
 
-    def get_grammar(self):
-        """
-        Get the grammar from the grammar Lark file.
-        """
-        with open(grammar_path, "r") as file:
-            return file.read()
+    """
+    Orchestrates the entire workflow of the system.
+    """ 
 
     def __init__(self, use_mock: bool = False):
         """
-        Initialize the Orchestrator.
-
-        Args:
-            use_mock: If True, use MockLLMClient. If None, use config.USE_MOCK
-            api_key: API key for OpenAI. If None, use config.OPENAI_API_KEY
-            github_token: GitHub Personal Access Token for GitHub Models API
-            use_ollama: If True, use local Ollama
+        Initializes the Orchestrator with the necessary agents and LLM client.
         """
-
-        self.grammar = self.get_grammar()
-
+        self.grammar = load_grammar()
+        
         if use_mock:
             print("[Orchestrator] Using MOCK LLM")
             self.client = MockLLMClient()
+        else:
+            # Real client initialization would go here
+            self.client = None 
 
         self.architect = ArchitectAgent(self.client)
         self.builder = BuilderAgent(self.client, self.grammar)
-        self.parser = ParserAgent(self.grammar)
-        self.transpiler = TranspilerAgent()
+        self.reviewer = ReviewerAgent()
+
+    # --- Main Flow ---
 
     def run(self, user_prompt: str):
         """
-        Main orchestrator loop.
+        Executes the entire compilation and translation workflow.
         """
-        print("[Orchestrator] Starting execution for \n", user_prompt)
+        print(f"--- Starting Workflow for: {user_prompt} ---")
 
-        # Step 1: Architect creates contract
-        print("[Orchestrator] Step 1: Architect creating contract...")
+        # 1. Define requirements and create the contract
+        contract = self._design_technical_contract(user_prompt)
+
+        # 2. Generate source code (Reverty)
+        reverty_code = self._generate_reverty_source(contract)
+
+        
+
+        # 5. Final verification
+        if not self._verify_python_implementation(python_code):
+            return {"status": "error", "step": "review"}
+
+        print("\n[Orchestrator] Workflow finished successfully!")
+        return {"status": "success", "python_code": python_code}
+
+  
+
+    # --- Coordination Actions ---
+
+    def _design_technical_contract(self, user_prompt: str):
+        """
+        Interacts with the Architect Agent to define the technical requirements.
+        """
+        print("[Orchestrator] Designing technical contract...")
         contract = self.architect.create_contract(user_prompt)
         print(f"[Contract] {contract}")
+        return contract
 
-        # Step 2: Builder generates code
-        print("\n[Orchestrator] Step 2: Builder generating code...")
-        reverty_code = self.builder.build_code(contract)
+    def _generate_reverty_source(self, contract):
+        """
+        Interacts with the BuilderAgent to generate Reverty source code.
+        """
 
+        print("\n[Orchestrator] Generating Reverty source code...")
+        code = self.builder.build_code(contract)
+        print(f"\n[Reverty Code]\n{repr(code)}")
+        return code
 
-        # Parser agent
-        print("\n[Orchestrator] Step 3: Parser validating syntax...")
-        print("\n[Reverty Code]\n", reverty_code)
+    def _validate_and_parse_syntax(self, reverty_code: str):
+        """
+        Validates the syntax of the Reverty code using the ParserAgent.
+        """
+
+        print("\n[Orchestrator] Validating syntax and building AST...")
         result = self.parser.run(reverty_code)
+        
         if result["status"] == "error":
-            error_message = result["message"]
-            print(f"[Orchestrator] Error in Parser Agent: {error_message}")
-            return {"status": "error", "message": error_message}
-        else:
-            ast = result["ast"]
-            print("[Orchestrator] AST generated correctly\n")
-            print_ast(ast)
+            print(f"[Orchestrator] Syntax Error: {result['message']}")
+            return None
+        
+        print("[Orchestrator] AST generated successfully.")
+        print_ast(result["ast"])
+        return result["ast"]
 
-        # Transpiler agent
-        result_python_code = self.transpiler.run(ast)
-        if result_python_code["status"] == "error":
-            error_message = result_python_code["message"]
-            print(f"[Orchestrator] Error in Transpiler Agent: {error_message}")
-            return {"status": "error", "message": error_message}
-        else:
-            python_code = result_python_code["python_code"]
-            print("[Orchestrator] Python code generated correctly\n")
-            print(python_code)
-            return {"status": "success", "python_code": python_code}
+    def _transpile_to_python(self, ast):
+        """
+        Transpiles the AST into Python code using the TranspilerAgent.
+        """
 
-      
-        # TODO Step 3: Testing
-        # TODO Step 4: Verification Loop
+        print("\n[Orchestrator] Transpiling AST to Python...")
+        result = self.transpiler.run(ast)
+        
+        if result["status"] == "error":
+            print(f"[Orchestrator] Transpilation Error: {result['message']}")
+            return None
+            
+        print("[Orchestrator] Python code ready.")
+        return result["python_code"]
+
+    def _verify_python_implementation(self, python_code: str):
+        """
+        Performs a final review of the generated Python code.
+        """
+        print("\n[Orchestrator] Final review of Python implementation...")
+        result = self.reviewer.run(python_code)
+        
+        if result["status"] == "error":
+            print(f"[Orchestrator] Reviewer found issues: {result['message']}")
+            return False
+            
+        print("[Orchestrator] Implementation verified.")
+        return True
+    
+    def _verify_and_refine(self, code, tests, contract, max_retries, logger):
+        """
+        Exclusively manages the test execution and code repair cycle.
+        """
+        
+        for i in range(max_retries):
+            logger.add_iteration_marker(i + 1)
+            result = self.executor.run_tests(code, tests)
+
+            if result.success:
+                self._log_success(result, logger)
+                return "SUCCESS", code, tests
+
+            # If it fails, refine
+            self._log_failure(result, logger)
+            code, tests, logs = self.refiner.refine(code, tests, result.output, contract)
+            self._log_refinement(code, tests, logs, logger)
+
+        return "FAILED", code, tests
 
     
-        

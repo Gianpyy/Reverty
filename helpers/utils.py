@@ -1,5 +1,11 @@
+from config import grammar_path
 from lark import Tree
 
+def load_grammar():
+    """Loads the grammar from the configured file."""
+    
+    with open(grammar_path, "r") as file:
+        return file.read()
 
 def print_ast(node, indent="", last=True):
     """

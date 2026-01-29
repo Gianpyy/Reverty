@@ -1,7 +1,7 @@
 import json
 from typing import Dict, Any
 from agents.agent import Agent
-from helpers.user_prompt_generator import generate_architect_request
+from helpers.prompt_generator import generate_architect_request
 from helpers.system_prompts import ARCHITECT_SYSTEM_PROMPT
 
 
@@ -10,14 +10,10 @@ class ArchitectAgent(Agent):
     Architect Agent: Contract Designer.
     Uses LLM to generate a contract from a user prompt.
     """
+
     def create_contract(self, user_prompt: str) -> Dict[str, Any]:
-        """Creates a formal contract/specification for the requested code.
-        
-        Args:
-            user_prompt: User's request.
-        
-        Returns:
-            Dict[str, Any]: Contract in JSON format.
+        """
+        Creates a formal contract/specification for the requested code.
         """
 
         print(f"[Architect Agent] Designing contract for: '{user_prompt}'...")

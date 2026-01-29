@@ -1,6 +1,5 @@
 from lark import Lark
 from lark.indenter import Indenter
-from agents.agent import Agent
 
 
 class RevertyIndenter(Indenter):
@@ -12,7 +11,7 @@ class RevertyIndenter(Indenter):
     tab_len = 4
 
 
-class ParserAgent(Agent):
+class Parser:
     """
     Parser Agent: Syntax Validator & Parser.
     Uses Lark to validate the input structure.
@@ -32,7 +31,7 @@ class ParserAgent(Agent):
 
             ast = self.parser.parse(code)
             print("[Parser Agent] Syntax OK! Tree generated.")
-            return {"status": "success", "code": code, "ast": ast}
+            return {"status": "success", "ast": ast}
 
         except Exception as e:
             print(f"[Parser Agent] Syntax Error: {e}")

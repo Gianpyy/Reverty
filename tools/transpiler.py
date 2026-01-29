@@ -1,8 +1,7 @@
 from lark import Transformer
-from agents.agent import Agent
 
 
-class TranspilerAgent(Agent):
+class Transpiler():
     """
     The Transpiler (Lark -> Python).
     Converts Reverty AST to Python 3 code.
@@ -100,9 +99,15 @@ class TranspilerAgent(Agent):
             return ", ".join(str(i) for i in items)
 
         def assign_stmt(self, items):
-            # NAME ":" type_hint "=" expr
-            name, type_h, expression = items
-            return f"{name}: {type_h} = {expression}"
+            # Se items ha 3 elementi: [name, type_h, expression]
+            # Se items ha 2 elementi: [name, expression]
+            if len(items) == 3:
+                name, type_h, expression = items
+                return f"{name}: {type_h} = {expression}"
+    
+            # Caso senza type hint
+            name, expression = items
+            return f"{name} = {expression}"
 
         def return_stmt(self, items):
             # "nruter" [expr]
@@ -185,6 +190,7 @@ class TranspilerAgent(Agent):
             print("[Transpiler] Starting conversion to python code...")
             transpiler = self.RevertyToPython()
             python_code = transpiler.transform(ast)
+            python_code += "\n"
             print("[Transpiler] Conversion complete.")
             return {"status": "success", "python_code": python_code}
         except Exception as e:
