@@ -1,5 +1,6 @@
 from lark import Transformer, Tree
-from typing import Dict, Any
+from typing import Any
+from helpers.analysis_result import AnalysisResult, Status
 
 
 class Transpiler:
@@ -186,7 +187,7 @@ class Transpiler:
     def __init__(self):
         pass
 
-    def run(self, ast: Tree[Any]) -> Dict[str, Any]:
+    def run(self, ast: Tree[Any]) -> AnalysisResult:
         """
         Transpiles the AST to Python code.
         """
@@ -197,8 +198,8 @@ class Transpiler:
             python_code += "\n"
 
             print("[Transpiler] Conversion complete.")
-            return {"status": "success", "python_code": python_code}
+            return AnalysisResult(status=Status.SUCCESS, message=python_code)
 
         except Exception as e:
             print("[Transpiler] Error: {e}")
-            return {"status": "error", "message": str(e)}
+            return AnalysisResult(status=Status.ERROR, message=str(e))

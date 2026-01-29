@@ -1,6 +1,6 @@
 from lark import Lark
 from lark.indenter import Indenter
-from typing import Dict, Any
+from helpers.analysis_result import AnalysisResult, Status
 
 
 class RevertyIndenter(Indenter):
@@ -23,7 +23,7 @@ class Parser:
             grammar, parser="lalr", postlex=RevertyIndenter(), start="start"
         )
 
-    def run(self, code: str) -> Dict[str, Any]:
+    def run(self, code: str) -> AnalysisResult:
         """
         Parses the input code and returns the AST.
         """
@@ -34,8 +34,8 @@ class Parser:
 
             ast = self.parser.parse(code)
             print("[Parser] Syntax OK! Tree generated.")
-            return {"status": "success", "ast": ast}
+            return AnalysisResult(status=Status.SUCCESS, message=ast)
 
         except Exception as e:
             print(f"[Parser] Syntax Error: {e}")
-            return {"status": "error", "message": str(e)}
+            return AnalysisResult(status=Status.ERROR, message=str(e))

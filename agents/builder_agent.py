@@ -7,6 +7,7 @@ from tools.parser import Parser
 from tools.transpiler import Transpiler
 from helpers.prompt_generator import generate_fix_request
 from lark import Tree
+from helpers.analysis_result import AnalysisResult, Status
 
 
 class BuilderAgent(Agent):
@@ -53,36 +54,34 @@ class BuilderAgent(Agent):
 
                 parser_response = self._parse_reverty_code(reverty_code)
 
-                if parser_response["status"] == "error":
+                if parser_response.status == Status.ERROR:
                     parsing_fix_prompt = generate_fix_request(
                         reverty_code=reverty_code,
-                        errors=parser_response["result"],
+                        errors=parser_response.message,
                         error_type="parsing",
                     )
                     reverty_code = self._fix_code(parsing_fix_prompt)
 
                     continue
 
-                ast = parser_response["result"]
+                ast = parser_response.message
                 print_ast(ast)
-
-                # print(f"\n[Reverty Code]\n{print_ast(ast)}")
 
                 # --- Transpile AST to Python ---
 
                 transpiler_response = self._transpile_ast_to_python(ast)
 
-                if transpiler_response["status"] == "error":
+                if transpiler_response.status == Status.ERROR:
                     transpilation_fix_prompt = generate_fix_request(
                         reverty_code=reverty_code,
-                        errors=transpiler_response["result"],
+                        errors=transpiler_response.message,
                         error_type="transpilation",
                     )
                     reverty_code = self._fix_code(transpilation_fix_prompt)
 
                     continue
 
-                python_code = transpiler_response["result"]
+                python_code = transpiler_response.message
 
                 print(f"\n[Python Code]\n{python_code}")
 
@@ -90,39 +89,40 @@ class BuilderAgent(Agent):
                 # Static analysis 1. Flake 2. Mypy
                 # if errors -> LLM FIX with error messages prompt
 
+                final_status = "SUCCESS"
                 return reverty_code
         except Exception as e:
             print(f"\n[Error] Exception occurred: {e}", flush=True)
             final_status = "ERROR"
 
         finally:
-            print(f"\n✓ Builder Agent finished execution with status: {final_status}")
+            print(f"[Builder] Finished execution with status: {final_status}")
 
-    def _parse_reverty_code(self, reverty_code: str) -> Dict[str, Any]:
+    def _parse_reverty_code(self, reverty_code: str) -> AnalysisResult:
         """
         Parses Reverty code into an AST.
         """
 
         response = self.parser.run(reverty_code)
 
-        if response["status"] == "error":
-            return {"status": "error", "result": response["message"]}
+        if response.status == Status.ERROR:
+            return AnalysisResult(status=Status.ERROR, message=response.message)
 
-        return {"status": "success", "result": response["ast"]}
+        return AnalysisResult(status=Status.SUCCESS, message=response.message)
 
-    def _transpile_ast_to_python(self, ast: Tree[Any]) -> Dict[str, Any]:
+    def _transpile_ast_to_python(self, ast: Tree[Any]) -> AnalysisResult:
         """
         Transpiles AST to Python code.
         """
 
         response = self.transpiler.run(ast)
 
-        if response["status"] == "error":
-            return {"status": "error", "result": response["message"]}
+        if response.status == Status.ERROR:
+            return AnalysisResult(status=Status.ERROR, message=response.message)
 
-        return {"status": "success", "result": response["python_code"]}
+        return AnalysisResult(status=Status.SUCCESS, message=response.message)
 
-    def _fix_code(self, fix_prompt: str):
+    def _fix_code(self, fix_prompt: str) -> str:
         """
         Fixes Reverty code based on error messages.
         """
