@@ -1,6 +1,6 @@
 from lark import Transformer, Tree
 from typing import Any
-from helpers.analysis_result import AnalysisResult, Status
+from helpers.enums import AnalysisResult, Status
 
 
 class Transpiler:

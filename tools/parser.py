@@ -1,6 +1,6 @@
 from lark import Lark
 from lark.indenter import Indenter
-from helpers.analysis_result import AnalysisResult, Status
+from helpers.enums import AnalysisResult, Status
 
 
 class RevertyIndenter(Indenter):
