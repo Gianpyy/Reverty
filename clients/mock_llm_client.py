@@ -29,8 +29,8 @@ class MockLLMClient(LLMClient):
             print("[MockLLMClient - Architect] ", response)
             return response
 
-        # Hardcoded response for fix (takes priority over builder)
-        if "fix" in user_prompt_lower:
+        # Hardcoded response for type checking (takes priority over fix, for testing purposes)
+        if "type checking" in user_prompt_lower:
             response = json.dumps(
                 {
                     "code": """: tni -> (tni: n) factorial fed
@@ -38,6 +38,23 @@ class MockLLMClient(LLMClient):
                         : n > 1 elihw
                             res = res * n
                             n = n - 1
+                        nruter res
+                    """,
+                },
+                indent=4,
+            )
+            print("[MockLLMClient - Type Checking] ", response)
+            return response
+
+        # Hardcoded response for fix (takes priority over builder)
+        if "fix" in user_prompt_lower:
+            response = json.dumps(
+                {
+                    "code": """: tni -> (tni: n) factorial fed
+                        res : rts = 1
+                        : n>1elihw
+                            res=res * n
+                            n=n-1
                         nruter res
                     """,
                 },
@@ -52,7 +69,7 @@ class MockLLMClient(LLMClient):
                 {
                     "code": """: tni -> (tni: n) factorial def
                         res = 1
-                        : n > 1 elihw
+                        : n> 1 elihw
                             res = res * n
                             n = n - 1
                         nruter res

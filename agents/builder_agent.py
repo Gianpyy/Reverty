@@ -3,9 +3,11 @@ from helpers.system_prompts import BUILDER_SYSTEM_PROMPT
 from typing import Dict, Any
 from agents.agent import Agent
 import json
+import traceback
 from tools.parser import Parser
 from tools.transpiler import Transpiler
 from tools.linter import Linter
+from tools.type_checker import TypeChecker
 from helpers.prompt_generator import generate_fix_request
 from lark import Tree
 from helpers.enums import AnalysisResult, Status, ErrorType
@@ -24,6 +26,7 @@ class BuilderAgent(Agent):
         self.parser = Parser(grammar)
         self.transpiler = Transpiler()
         self.linter = Linter()
+        self.type_checker = TypeChecker()
 
     def build_code(self, contract: Dict[str, Any], max_iterations: int = 3) -> str:
         """
@@ -67,7 +70,7 @@ class BuilderAgent(Agent):
 
                 # --- TRANSPILATION ---
                 # Transpile AST to Python
-                transpiler_response = self._transpile_ast_to_python(ast)
+                transpiler_response = self._transpile_ast_to_python(ast, reverty_code)
 
                 # Update Reverty code if there's a transpilation error
                 if transpiler_response.status == Status.ERROR:
@@ -87,14 +90,20 @@ class BuilderAgent(Agent):
                     reverty_code = linter_response.message
                     continue
 
-                # TODO
-                # 2. Mypy
-                # if errors -> LLM FIX with error messages prompt
+                # --- TYPE CHECKING ---
+                # Check for type errors
+                type_checker_response = self._check_type_errors(
+                    python_code, reverty_code
+                )
+
+                if type_checker_response.status == Status.ERROR:
+                    reverty_code = type_checker_response.message
+                    continue
 
                 final_status = "SUCCESS"
                 return reverty_code
-        except Exception as e:
-            print(f"\n[Error] Exception occurred: {e}", flush=True)
+        except Exception:
+            traceback.print_exc()
             final_status = "ERROR"
 
         finally:
@@ -112,7 +121,7 @@ class BuilderAgent(Agent):
             reverty_code = self._fix_code(
                 errors=parser_response.message,
                 reverty_code=reverty_code,
-                error_type=ErrorType.PARSING,
+                error_type=ErrorType.PARSING.value,
             )
 
             # Return fixed code
@@ -133,7 +142,7 @@ class BuilderAgent(Agent):
             reverty_code = self._fix_code(
                 errors=transpiler_response.message,
                 reverty_code=reverty_code,
-                error_type=ErrorType.TRANSPILATION,
+                error_type=ErrorType.TRANSPILATION.value,
             )
 
             # Return fixed code
@@ -156,7 +165,7 @@ class BuilderAgent(Agent):
             reverty_code = self._fix_code(
                 errors=linter_response.message,
                 reverty_code=reverty_code,
-                error_type=ErrorType.LINTING,
+                error_type=ErrorType.LINTING.value,
             )
 
             # Return fixed code
@@ -164,6 +173,27 @@ class BuilderAgent(Agent):
 
         # Return success status
         return AnalysisResult(Status.SUCCESS, linter_response.message)
+
+    def _check_type_errors(self, python_code: str, reverty_code: str) -> AnalysisResult:
+        """
+        Checks for type errors in Python code. If there's a type error, it fixes it and returns the fixed code.
+        """
+        # Check for type errors
+        type_checker_response = self.type_checker.run(python_code)
+
+        # If there's a type error, fix it
+        if type_checker_response.status == Status.ERROR:
+            reverty_code = self._fix_code(
+                errors=type_checker_response.message,
+                reverty_code=reverty_code,
+                error_type=ErrorType.TYPE_CHECKING.value,
+            )
+
+            # Return fixed code
+            return AnalysisResult(Status.ERROR, reverty_code)
+
+        # Return success status
+        return AnalysisResult(Status.SUCCESS, type_checker_response.message)
 
     def _fix_code(
         self, errors: str, reverty_code: str, error_type: str

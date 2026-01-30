@@ -1,4 +1,5 @@
 from enum import Enum
+from dataclasses import dataclass
 
 
 class Status(Enum):
@@ -14,8 +15,10 @@ class ErrorType(Enum):
     PARSING = "parsing"
     TRANSPILATION = "transpilation"
     LINTING = "linting"
+    TYPE_CHECKING = "type checking"
 
 
+@dataclass
 class AnalysisResult:
     """Result of static analysis."""
 
