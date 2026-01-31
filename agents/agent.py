@@ -6,28 +6,36 @@ class Agent:
     """
     Base class for all agents.
     """
+
     def __init__(self, client):
         self.client = client
 
     def _extract_json(self, response: str) -> Dict[str, Any]:
         """Robustly extracts JSON from a string, handling markdown and extra text."""
-        # 1. Try direct parsing
 
         print(f"[EXTRACT JSON] Response: {response}")
 
+        # 1. Try direct parsing a JSON object
         try:
             return json.loads(response)
         except json.JSONDecodeError:
             pass
 
-        # 2. Try extracting from markdown code blocks
+        # 2. Try direct parsing code
+        try:
+            json_block = {"code": response}
+            return json_block
+        except json.JSONDecodeError:
+            pass
+
+        # 3. Try extracting from markdown code blocks
         try:
             if "```json" in response:
                 block = response.split("```json")[1].split("```")[0].strip()
                 return json.loads(block)
             elif "```reverty" in response:
                 block = response.split("```reverty")[1].split("```")[0].strip()
-                json_block = {"code" : block}
+                json_block = {"code": block}
                 return json_block
             elif "```" in response:
                 block = response.split("```")[1].split("```")[0].strip()
@@ -35,7 +43,7 @@ class Agent:
         except json.JSONDecodeError:
             pass
 
-        # 3. Try finding the first '{' and last '}' (greedy)
+        # 4. Try finding the first '{' and last '}' (greedy)
         try:
             start = response.find("{")
             end = response.rfind("}")
@@ -45,7 +53,7 @@ class Agent:
         except json.JSONDecodeError:
             pass
 
-        # 4. Try finding the largest valid JSON object (nested braces)
+        # 5. Try finding the largest valid JSON object (nested braces)
         # This is a heuristic for when the model outputs multiple JSON-like things
         try:
             stack = []

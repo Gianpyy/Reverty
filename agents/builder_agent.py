@@ -206,15 +206,16 @@ class BuilderAgent(Agent):
         """
 
         # Build fix prompt
-        parsing_fix_prompt = generate_fix_request(
+        fix_prompt = generate_fix_request(
             reverty_code=reverty_code,
             errors=errors,
             error_type=error_type,
         )
 
         # Call LLM
+        print(f"\n[Builder Agent] Fix Prompt: {fix_prompt}")
         response = self.client.generate(
-            user_prompt=parsing_fix_prompt,
+            user_prompt=fix_prompt,
             system_prompt=BUILDER_SYSTEM_PROMPT + "\n\n" + self.grammar,
         )
 

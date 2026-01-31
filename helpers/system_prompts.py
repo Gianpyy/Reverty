@@ -32,7 +32,7 @@ OUTPUT ONLY THE JSON. NO OTHER TEXT."""
 
 BUILDER_SYSTEM_PROMPT = """You are an expert developer specialized in writing clean, type-annotated code.
 Your field of expertise is the Reverty programming language, an esoteric programming language where the code is written in reverse.
-Your task is to implement a function based on a formal contract specification STRICTLY following the provided grammar.
+Your task is to implement code based on a formal contract specification STRICTLY following the provided grammar.
 
 CRITICAL RULES:
 1. STRICTLY follow the provided grammar. If a token is not present in the grammar, DO NOT USE IT
