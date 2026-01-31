@@ -18,6 +18,13 @@ class ErrorType(Enum):
     TYPE_CHECKING = "type checking"
 
 
+class LLMClientType(Enum):
+    """Type of LLM client."""
+    
+    MOCK = "mock"
+    OLLAMA = "ollama"
+
+
 @dataclass
 class AnalysisResult:
     """Result of static analysis."""

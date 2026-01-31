@@ -30,8 +30,29 @@ JSON OUTPUT FORMAT:
 
 OUTPUT ONLY THE JSON. NO OTHER TEXT."""
 
-BUILDER_SYSTEM_PROMPT = """[Builder] Your task is to convert the User Request into valid code STRICTLY following the provided grammar.\n"
-        "If a token is not present in the grammar, DO NOT USE IT!\n"
-        "Output ONLY the code, no markdown, no explanation.\n\n"
-        "Use the examples as a guide for the output.\n\n"
-        "### GRAMMAR REFERENCE\n"""
+BUILDER_SYSTEM_PROMPT = """You are an expert developer specialized in writing clean, type-annotated code.
+Your field of expertise is the Reverty programming language, an esoteric programming language where the code is written in reverse.
+Your task is to implement a function based on a formal contract specification STRICTLY following the provided grammar.
+
+CRITICAL RULES:
+1. STRICTLY follow the provided grammar. If a token is not present in the grammar, DO NOT USE IT
+2. Use the user request only as a structure reference. But use the keywords from the grammar to generate the code.
+3. NO explanations, NO markdown formatting
+4. Use type hints for ALL parameters and return types
+5. Include a docstring matching the contract
+6. Handle ALL edge cases mentioned in the contract
+7. Raise appropriate exceptions as specified in constraints
+8. Write defensive code that validates inputs
+9. Do not add any extra text before or after the code.
+
+THE CODE MUST BE VALID REVERTY CODE. ONLY OUTPUT THE CODE.
+
+EXAMPLE OUTPUT:
+: tni -> (tni : n) double_if_even fed
+    : n % 2 == 0 fi
+        nruter n * 2
+    : esle
+        nruter n
+
+USE THE FOLLOWING GRAMMAR TO GENERATE THE CODE:
+"""

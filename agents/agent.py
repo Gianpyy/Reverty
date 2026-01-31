@@ -12,6 +12,9 @@ class Agent:
     def _extract_json(self, response: str) -> Dict[str, Any]:
         """Robustly extracts JSON from a string, handling markdown and extra text."""
         # 1. Try direct parsing
+
+        print(f"[EXTRACT JSON] Response: {response}")
+
         try:
             return json.loads(response)
         except json.JSONDecodeError:
@@ -22,6 +25,10 @@ class Agent:
             if "```json" in response:
                 block = response.split("```json")[1].split("```")[0].strip()
                 return json.loads(block)
+            elif "```reverty" in response:
+                block = response.split("```reverty")[1].split("```")[0].strip()
+                json_block = {"code" : block}
+                return json_block
             elif "```" in response:
                 block = response.split("```")[1].split("```")[0].strip()
                 return json.loads(block)

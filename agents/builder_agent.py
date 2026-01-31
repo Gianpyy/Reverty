@@ -46,9 +46,11 @@ class BuilderAgent(Agent):
             system_prompt=BUILDER_SYSTEM_PROMPT + "\n\n" + self.grammar,
         )
 
+        print(f"[Builder Agent] Response: {response}")
         reverty_code_json = self._extract_json(response)
         reverty_code = reverty_code_json["code"] + "\n"
 
+        print(f"[Builder Agent] Reverty Code: {json.dumps(reverty_code, indent=2)}")
         final_status = "FAILED"
 
         try:
@@ -102,6 +104,7 @@ class BuilderAgent(Agent):
 
                 final_status = "SUCCESS"
                 return reverty_code
+
         except Exception:
             traceback.print_exc()
             final_status = "ERROR"

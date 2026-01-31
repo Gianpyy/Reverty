@@ -64,7 +64,7 @@ class MockLLMClient(LLMClient):
             return response
 
         # Hardcoded response for builder agent
-        if "builder" in system_prompt_lower:
+        if "esoteric" in system_prompt_lower:
             response = json.dumps(
                 {
                     "code": """: tni -> (tni: n) factorial def

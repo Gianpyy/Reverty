@@ -2,25 +2,31 @@ from agents.architect_agent import ArchitectAgent
 from agents.builder_agent import BuilderAgent
 from clients.mock_llm_client import MockLLMClient
 from helpers.utils import load_grammar, print_ast
-
+from helpers.enums import LLMClientType
+from clients.ollama_client import OllamaClient
 
 class Orchestrator:
     """
     Orchestrates the entire workflow of the system.
     """
 
-    def __init__(self, use_mock: bool = False):
+    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK):
         """
         Initializes the Orchestrator with the necessary agents and LLM client.
         """
         self.grammar = load_grammar()
 
-        if use_mock:
-            print("[Orchestrator] Using MOCK LLM")
-            self.client = MockLLMClient()
-        else:
-            # Real client initialization would go here
-            self.client = None
+        match llm_client_type:
+            case LLMClientType.MOCK:
+                print("[Orchestrator] Using MOCK LLM")
+                self.client = MockLLMClient()
+
+            case LLMClientType.OLLAMA:
+                print("[Orchestrator] Using OLLAMA LLM")
+                self.client = OllamaClient()
+
+            case _:
+                self.client = None
 
         self.architect = ArchitectAgent(self.client)
         self.builder = BuilderAgent(self.client, self.grammar)
@@ -97,38 +103,3 @@ class Orchestrator:
         print("[Orchestrator] Python code ready.")
         return result["python_code"]
 
-    def _verify_python_implementation(self, python_code: str):
-        """
-        Performs a final review of the generated Python code.
-        """
-        print("\n[Orchestrator] Final review of Python implementation...")
-        result = self.reviewer.run(python_code)
-
-        if result["status"] == "error":
-            print(f"[Orchestrator] Reviewer found issues: {result['message']}")
-            return False
-
-        print("[Orchestrator] Implementation verified.")
-        return True
-
-    def _verify_and_refine(self, code, tests, contract, max_retries, logger):
-        """
-        Exclusively manages the test execution and code repair cycle.
-        """
-
-        for i in range(max_retries):
-            logger.add_iteration_marker(i + 1)
-            result = self.executor.run_tests(code, tests)
-
-            if result.success:
-                self._log_success(result, logger)
-                return "SUCCESS", code, tests
-
-            # If it fails, refine
-            self._log_failure(result, logger)
-            code, tests, logs = self.refiner.refine(
-                code, tests, result.output, contract
-            )
-            self._log_refinement(code, tests, logs, logger)
-
-        return "FAILED", code, tests
