@@ -3,9 +3,9 @@ from helpers.enums import LLMClientType
 
 def main():
     
-    orchestrator = Orchestrator(LLMClientType.OLLAMA)
+    orchestrator = Orchestrator(LLMClientType.GITHUB_MODELS)
     result = orchestrator.run(
-        "Write a function that calculates the factiorial of a number."
+        "Write a function that calculates the factorial of a number."
     )
     print(result["code"])
 

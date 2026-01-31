@@ -4,6 +4,7 @@ from clients.mock_llm_client import MockLLMClient
 from helpers.utils import load_grammar, print_ast
 from helpers.enums import LLMClientType
 from clients.ollama_client import OllamaClient
+from clients.github_models_client import GitHubModelsClient
 
 class Orchestrator:
     """
@@ -24,6 +25,10 @@ class Orchestrator:
             case LLMClientType.OLLAMA:
                 print("[Orchestrator] Using OLLAMA LLM")
                 self.client = OllamaClient()
+            
+            case LLMClientType.GITHUB_MODELS:
+                print("[Orchestrator] Using GITHUB MODELS LLM")
+                self.client = GitHubModelsClient()
 
             case _:
                 self.client = None

@@ -23,6 +23,7 @@ class LLMClientType(Enum):
     
     MOCK = "mock"
     OLLAMA = "ollama"
+    GITHUB_MODELS = "github_models"
 
 
 @dataclass
