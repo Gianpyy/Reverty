@@ -13,6 +13,18 @@ class MockLLMClient(LLMClient):
         user_prompt_lower = user_prompt.lower()
         system_prompt_lower = system_prompt.lower()
 
+        # Hardcoded response for test agent
+        if "evaluation" in system_prompt_lower:
+            response = json.dumps(
+                {
+                    "complexity": 5,
+                },
+                indent=4,
+            )
+            
+            print("[MockLLMClient - Evaluation] ", response)
+            return response
+        
         # Hardcoded response for architect agent
         if "architect" in system_prompt_lower:
             response = json.dumps(
@@ -79,3 +91,19 @@ class MockLLMClient(LLMClient):
             )
             print("[MockLLMClient - Builder] ", response)
             return response
+
+        # Hardcoded response for test agent
+        if "test" in user_prompt_lower or "pytest" in user_prompt_lower:
+            return """import pytest
+            from implementation import factorial
+
+            def test_factorial_basic():
+                assert factorial(5) == 120
+
+            def test_factorial_zero():
+                assert factorial(0) == 1
+
+            def test_factorial_negative():
+                with pytest.raises(ValueError):
+                    factorial(-1)
+            """

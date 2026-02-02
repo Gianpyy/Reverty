@@ -1,6 +1,6 @@
 from helpers.utils import print_ast
 from helpers.system_prompts import BUILDER_SYSTEM_PROMPT
-from typing import Dict, Any
+from typing import Dict, Any, Tuple
 from agents.agent import Agent
 import json
 import traceback
@@ -8,10 +8,9 @@ from tools.parser import Parser
 from tools.transpiler import Transpiler
 from tools.linter import Linter
 from tools.type_checker import TypeChecker
-from helpers.prompt_generator import generate_fix_request
+from helpers.prompt_generator import generate_fix_request, generate_builder_request
 from lark import Tree
 from helpers.enums import AnalysisResult, Status, ErrorType
-
 
 class BuilderAgent(Agent):
     """
@@ -28,7 +27,7 @@ class BuilderAgent(Agent):
         self.linter = Linter()
         self.type_checker = TypeChecker()
 
-    def build_code(self, contract: Dict[str, Any], max_iterations: int = 3) -> str:
+    def build_code(self, contract: Dict[str, Any], max_iterations: int = 3) -> Tuple[str, str, AnalysisResult]:
         """
         Generates implementation code based on the contract.
         """
@@ -37,12 +36,10 @@ class BuilderAgent(Agent):
             f"[Builder] Building implementation for contract: {contract.get('function_name')}..."
         )
 
-        code_prompt = f"""Contract Specification: {json.dumps(contract, indent=2)}
-                          Implement the function according to this contract.
-                       """
+        builder_prompt = generate_builder_request(contract)
 
         response = self.client.generate(
-            user_prompt=code_prompt,
+            user_prompt=builder_prompt,
             system_prompt=BUILDER_SYSTEM_PROMPT + "\n\n" + self.grammar,
         )
 
@@ -51,7 +48,7 @@ class BuilderAgent(Agent):
         reverty_code = reverty_code_json["code"] + "\n"
 
         print(f"[Builder Agent] Reverty Code: {json.dumps(reverty_code, indent=2)}")
-        final_status = "FAILED"
+        final_status = AnalysisResult(Status.ERROR, "")
 
         try:
             for i in range(max_iterations):
@@ -63,6 +60,7 @@ class BuilderAgent(Agent):
 
                 # Update Reverty code if there's a parsing error
                 if parser_response.status == Status.ERROR:
+                    final_status = AnalysisResult(Status.ERROR, "Parsing failed.")
                     reverty_code = parser_response.message
                     continue
 
@@ -76,6 +74,7 @@ class BuilderAgent(Agent):
 
                 # Update Reverty code if there's a transpilation error
                 if transpiler_response.status == Status.ERROR:
+                    final_status = AnalysisResult(Status.ERROR, "Transpilation failed.")
                     reverty_code = transpiler_response.message
                     continue
 
@@ -89,6 +88,7 @@ class BuilderAgent(Agent):
                 linter_response = self._check_linting_errors(python_code, reverty_code)
 
                 if linter_response.status == Status.ERROR:
+                    final_status = AnalysisResult(Status.ERROR, "Linting failed.")
                     reverty_code = linter_response.message
                     continue
 
@@ -99,18 +99,22 @@ class BuilderAgent(Agent):
                 )
 
                 if type_checker_response.status == Status.ERROR:
+                    final_status = AnalysisResult(Status.ERROR, "Type checking failed.")
                     reverty_code = type_checker_response.message
                     continue
 
-                final_status = "SUCCESS"
-                return reverty_code
+                final_status = AnalysisResult(Status.SUCCESS, "Code built successfully.")
+
+                return reverty_code, python_code, final_status
+
 
         except Exception:
             traceback.print_exc()
-            final_status = "ERROR"
+            final_status = AnalysisResult(Status.ERROR, "Exception occurred during code building.")
 
         finally:
-            print(f"[Builder] Finished execution with status: {final_status}")
+            print(f"[Builder] Finished execution with status: {final_status.status.value}")      
+            return reverty_code, "", final_status
 
     def _parse_reverty_code(self, reverty_code: str) -> AnalysisResult:
         """

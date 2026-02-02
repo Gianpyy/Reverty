@@ -1,12 +1,13 @@
 from agents.architect_agent import ArchitectAgent
 from agents.builder_agent import BuilderAgent
 from agents.evaluator_agent import EvaluatorAgent
+from agents.tester_agent import TesterAgent
 from clients.mock_llm_client import MockLLMClient
 from helpers.utils import load_grammar, print_ast
 from helpers.enums import LLMClientType
 from clients.ollama_client import OllamaClient
 from clients.github_models_client import GitHubModelsClient
-
+from helpers.enums import Status
 
 class Orchestrator:
     """
@@ -26,7 +27,7 @@ class Orchestrator:
 
             case LLMClientType.OLLAMA:
                 print("[Orchestrator] Using OLLAMA LLM")
-                self.client = OllamaClient(model="qwen2.5:7b")
+                self.client = OllamaClient()
 
             case LLMClientType.GITHUB_MODELS:
                 print("[Orchestrator] Using GITHUB MODELS LLM")
@@ -38,7 +39,8 @@ class Orchestrator:
         self.evaluator = EvaluatorAgent(self.client)
         self.architect = ArchitectAgent(self.client)
         self.builder = BuilderAgent(self.client, self.grammar)
-
+        self.tester = TesterAgent(self.client)
+        
     # --- Main Flow ---
 
     def run(self, user_prompt: str):
@@ -48,21 +50,26 @@ class Orchestrator:
         print(f"--- Starting Workflow for: {user_prompt} ---")
 
         # 1. Evaluate complexity
-        evaluation = self._evaluate_request_complexity(user_prompt)
-        complexity = evaluation["complexity"]
+        complexity = self._evaluate_request_complexity(user_prompt)
+
+        print(f"[Orchestrator] Complexity: {complexity}") 
 
         # 2. Define requirements and create the contract
         contract = self._design_technical_contract(user_prompt, complexity)
 
-        # 3. Generate Reverty code
-        reverty_code = self._generate_reverty_code(contract)
+        # 3. Generate Reverty/Python code
+        reverty_code, python_code, result = self._generate_code(contract)
 
-        # 4. Final verification
-        # if not self._verify_python_implementation(python_code):
-        #     return {"status": "error", "step": "review"}
+
+        if result.status == Status.SUCCESS:
+            # 4. Build tests
+            test_code = self._generate_tests(contract, python_code)
+
+            print("\n[Orchestrator Test Code]\n")
+            print(f"{test_code}")
 
         print("\n[Orchestrator] Workflow finished successfully!")
-        return {"status": "success", "code": reverty_code}
+        return {"status": result.status.value, "code": reverty_code}
 
     # --- Coordination Actions ---
     def _evaluate_request_complexity(self, user_prompt: str):
@@ -81,15 +88,15 @@ class Orchestrator:
         contract = self.architect.create_contract(user_prompt, complexity)
         return contract
 
-    def _generate_reverty_code(self, contract):
+    def _generate_code(self, contract):
         """
-        Interacts with the BuilderAgent to generate Reverty code.
+        Interacts with the BuilderAgent to generate Reverty code with its Python equivalent.
         """
 
         print("\n[Orchestrator] Generating Reverty code...")
-        code = self.builder.build_code(contract)
-        print(f"\n[Reverty Code]\n{code}")
-        return code
+        response = self.builder.build_code(contract)
+        print(f"\n[Reverty Code]\n{response}")
+        return response
 
     def _validate_and_parse_syntax(self, reverty_code: str):
         """
@@ -121,3 +128,14 @@ class Orchestrator:
 
         print("[Orchestrator] Python code ready.")
         return result["python_code"]
+    
+    def _generate_tests(self, contract, python_code):
+        """
+        Interacts with the Tester Agent to generate tests.
+        """
+
+        print("\n[Orchestrator] Generating tests...")
+        tests = self.tester.build_tests(contract, python_code)
+        
+        print(f"\n[Tests]\n{tests}")
+        return tests

@@ -1,3 +1,7 @@
+
+import json
+from typing import Dict, Any
+
 """
 Helper functions for generating user requests from user prompts.
 """
@@ -62,3 +66,28 @@ def generate_fix_request(reverty_code: str, errors: str, error_type: str) -> str
                     """
 
     return fix_parsing_prompt
+
+
+def generate_builder_request(contract: Dict[str, Any]) -> str:
+    """
+    Generates a request for the builder agent.
+    """
+    builder_prompt = f"""Contract Specification: {json.dumps(contract, indent=2)}
+                          Implement the function according to this contract.
+                    """
+
+    return builder_prompt
+
+def generate_tester_request(contract: Dict[str, Any], code: str) -> str:
+    """
+    Generates a request for the tester agent.
+    """
+    test_prompt = f"""Contract Specification:
+                    {json.dumps(contract, indent=2)}
+
+                    Implementation Code:
+                    {code}
+
+                    Write comprehensive pytest tests for this implementation based on the contract."""
+
+    return test_prompt

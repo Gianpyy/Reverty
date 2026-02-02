@@ -37,6 +37,10 @@ class Agent:
                 block = response.split("```reverty")[1].split("```")[0].strip()
                 json_block = {"code": block}
                 return json_block
+            elif "```python" in response:
+                block = response.split("```python")[1].split("```")[0].strip()
+                json_block = {"code": block}
+                return json_block
             elif "```" in response:
                 block = response.split("```")[1].split("```")[0].strip()
                 return json.loads(block)

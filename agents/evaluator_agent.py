@@ -19,7 +19,8 @@ class EvaluatorAgent(Agent):
         print(f"[Evaluator Agent] Evaluating request: '{user_prompt}'...")
 
         response = self.client.generate(
-            user_prompt=user_prompt, system_prompt=EVALUATOR_SYSTEM_PROMPT
+            user_prompt=user_prompt, 
+            system_prompt=EVALUATOR_SYSTEM_PROMPT
         )
 
         # Try to parse JSON
@@ -43,7 +44,11 @@ class EvaluatorAgent(Agent):
             return {}
 
 
-def _make_request(self, user_prompt: str) -> str:
-    return self.client.generate(
-        user_prompt=user_prompt, system_prompt=EVALUATOR_SYSTEM_PROMPT
-    )
+    def _make_request(self, user_prompt: str) -> str:
+        """
+        Makes a request to the LLM client to evaluate the complexity of a user prompt.
+        """
+        return self.client.generate(
+            user_prompt=user_prompt,
+            system_prompt=EVALUATOR_SYSTEM_PROMPT
+        )
