@@ -1,3 +1,5 @@
+from typing import List
+from typing import Optional
 from enum import Enum
 from dataclasses import dataclass
 
@@ -25,10 +27,23 @@ class LLMClientType(Enum):
     OLLAMA = "ollama"
     GITHUB_MODELS = "github_models"
 
+class RequestType(Enum):
+    """Type of request for coder agent."""
+    
+    INITIAL = "initial"
+    FIX = "fix"
 
 @dataclass
 class AnalysisResult:
-    """Result of static analysis."""
+    """Result of analysis."""
 
     status: Status
     message: str
+
+@dataclass
+class ExecutionResult:
+    """Result of test execution."""
+    
+    status: Status
+    code_failures: str = None
+    failed_tests: str = None

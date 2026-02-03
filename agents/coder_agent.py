@@ -1,5 +1,5 @@
 from helpers.utils import print_ast
-from helpers.system_prompts import BUILDER_SYSTEM_PROMPT
+from helpers.system_prompts import CODER_SYSTEM_PROMPT
 from typing import Dict, Any, Tuple
 from agents.agent import Agent
 import json
@@ -8,13 +8,14 @@ from tools.parser import Parser
 from tools.transpiler import Transpiler
 from tools.linter import Linter
 from tools.type_checker import TypeChecker
-from helpers.prompt_generator import generate_fix_request, generate_builder_request
+from helpers.prompt_generator import generate_test_fix_request, generate_coder_request, generate_static_fix_request
 from lark import Tree
-from helpers.enums import AnalysisResult, Status, ErrorType
+from helpers.enums import AnalysisResult, Status, ErrorType, RequestType
+from config import MAX_VALIDATION_ITERATIONS
 
-class BuilderAgent(Agent):
+class CoderAgent(Agent):
     """
-    Builder Agent: Code Generator.
+    Coder Agent: Code Generator.
     Uses LLM to generate code based on a contract.
     """
 
@@ -27,32 +28,47 @@ class BuilderAgent(Agent):
         self.linter = Linter()
         self.type_checker = TypeChecker()
 
-    def build_code(self, contract: Dict[str, Any], max_iterations: int = 3) -> Tuple[str, str, AnalysisResult]:
+    def run(self, contract: Dict[str, Any], request_type: RequestType = RequestType.INITIAL, reverty_code: str = "", python_code: str = "", errors: str = "") -> Tuple[str, str, AnalysisResult]:
         """
-        Generates implementation code based on the contract.
+        Runs the coder_prompt generator and the code builder.
         """
 
-        print(
-            f"[Builder] Building implementation for contract: {contract.get('function_name')}..."
-        )
+        coder_prompt = self._coder_prompt_generator(contract, request_type, reverty_code, python_code, errors)
 
-        builder_prompt = generate_builder_request(contract)
+        return self._build_code(coder_prompt)
 
+    def _coder_prompt_generator(self, contract: Dict[str, Any], request_type: RequestType = RequestType.INITIAL, reverty_code: str = "", python_code: str = "", errors: str = "") -> str:
+        """
+        Generates a prompt for the coder based on the request type.
+        """
+        if request_type == RequestType.INITIAL:
+            coder_prompt = generate_coder_request(contract)
+        elif request_type == RequestType.FIX:
+            coder_prompt = generate_test_fix_request(contract, reverty_code, python_code, errors)
+
+        return coder_prompt
+
+
+    def _build_code(self, coder_prompt: str) -> Tuple[str, str, AnalysisResult]:
+        """
+        Generates implementation code based on the coder_prompt.
+        """
+        
         response = self.client.generate(
-            user_prompt=builder_prompt,
-            system_prompt=BUILDER_SYSTEM_PROMPT + "\n\n" + self.grammar,
+            user_prompt=coder_prompt,
+            system_prompt=CODER_SYSTEM_PROMPT + "\n\n" + self.grammar,
         )
 
-        print(f"[Builder Agent] Response: {response}")
+        print(f"[Coder Agent] Response: {response}")
         reverty_code_json = self._extract_json(response)
         reverty_code = reverty_code_json["code"] + "\n"
 
-        print(f"[Builder Agent] Reverty Code: {json.dumps(reverty_code, indent=2)}")
+        print(f"[Coder Agent] Reverty Code: {json.dumps(reverty_code, indent=2)}")
         final_status = AnalysisResult(Status.ERROR, "")
 
         try:
-            for i in range(max_iterations):
-                print(f"\n[Builder] Iteration {i + 1}...")
+            for i in range(MAX_VALIDATION_ITERATIONS):
+                print(f"\n[Coder] Iteration {i + 1}...")
 
                 # --- PARSING ---
                 # Parse Reverty code to AST
@@ -81,7 +97,6 @@ class BuilderAgent(Agent):
                 # Get transpiled Python code
                 python_code = transpiler_response.message
 
-                print(f"\n[Python Code]\n{python_code}")
 
                 # --- LINTING ---
                 # Check for linting errors
@@ -105,6 +120,8 @@ class BuilderAgent(Agent):
 
                 final_status = AnalysisResult(Status.SUCCESS, "Code built successfully.")
 
+                print("[Coder] Python code: ", python_code)
+
                 return reverty_code, python_code, final_status
 
 
@@ -113,8 +130,8 @@ class BuilderAgent(Agent):
             final_status = AnalysisResult(Status.ERROR, "Exception occurred during code building.")
 
         finally:
-            print(f"[Builder] Finished execution with status: {final_status.status.value}")      
-            return reverty_code, "", final_status
+            print(f"[Coder] Finished execution with status: {final_status.status.value}")     
+        
 
     def _parse_reverty_code(self, reverty_code: str) -> AnalysisResult:
         """
@@ -210,17 +227,17 @@ class BuilderAgent(Agent):
         """
 
         # Build fix prompt
-        fix_prompt = generate_fix_request(
+        fix_prompt = generate_static_fix_request(
             reverty_code=reverty_code,
             errors=errors,
             error_type=error_type,
         )
 
         # Call LLM
-        print(f"\n[Builder Agent] Fix Prompt: {fix_prompt}")
+        print(f"\n[Coder Agent] Fix Prompt: {fix_prompt}")
         response = self.client.generate(
             user_prompt=fix_prompt,
-            system_prompt=BUILDER_SYSTEM_PROMPT + "\n\n" + self.grammar,
+            system_prompt=CODER_SYSTEM_PROMPT + "\n\n" + self.grammar,
         )
 
         fix_result = self._extract_json(response)

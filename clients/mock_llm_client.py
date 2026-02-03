@@ -58,7 +58,7 @@ class MockLLMClient(LLMClient):
             print("[MockLLMClient - Type Checking] ", response)
             return response
 
-        # Hardcoded response for fix (takes priority over builder)
+        # Hardcoded response for fix (takes priority over coder)
         if "fix" in user_prompt_lower:
             response = json.dumps(
                 {
@@ -75,7 +75,7 @@ class MockLLMClient(LLMClient):
             print("[MockLLMClient - Fix] ", response)
             return response
 
-        # Hardcoded response for builder agent
+        # Hardcoded response for coder agent
         if "esoteric" in system_prompt_lower:
             response = json.dumps(
                 {
@@ -89,21 +89,35 @@ class MockLLMClient(LLMClient):
                 },
                 indent=4,
             )
-            print("[MockLLMClient - Builder] ", response)
+            print("[MockLLMClient - Coder] ", response)
             return response
 
-        # Hardcoded response for test agent
+        # Hardcoded response for tester generator agent
         if "test" in user_prompt_lower or "pytest" in user_prompt_lower:
             return """import pytest
-            from implementation import factorial
+from implementation import factorial
 
-            def test_factorial_basic():
-                assert factorial(5) == 120
 
-            def test_factorial_zero():
-                assert factorial(0) == 1
+def test_factorial_positive():
+    assert factorial(5) == 120
+    assert factorial(3) == 6
+    assert factorial(1) == 1
 
-            def test_factorial_negative():
-                with pytest.raises(ValueError):
-                    factorial(-1)
+
+def test_factorial_zero():
+    assert factorial(0) == 1
+
+
+def test_factorial_negative():
+    with pytest.raises(ValueError):
+        factorial(-1)
             """
+
+        # Hardcoded response for test agent
+        if "failures" in system_prompt_lower:
+            return """
+            "analysis": "Brief explanation of what went wrong",
+            "code_failures": "List of code failures (or null if code were not wrong)",
+            "test_failures": "List of test failures (or null if test were not wrong)"
+            """
+        
