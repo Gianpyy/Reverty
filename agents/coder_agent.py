@@ -30,29 +30,33 @@ class CoderAgent(Agent):
         self.linter = Linter()
         self.type_checker = TypeChecker()
 
-    def generate_code(self, contract: Dict[str, Any]) -> Tuple[str, str, AnalysisResult]:
+    def build_initial_code(self, contract: Dict[str, Any]) -> Tuple[str, str, AnalysisResult]:
         """
         Generates Reverty code based on the contract.
         """
         
         self.contract = contract
         coder_prompt = generate_coder_request(contract)
-        return self._build_code(coder_prompt)
+        reverty_code = self._generate_code(coder_prompt)
+
+        return self._validate_code(reverty_code)
 
     def fix_code(self, contract: Dict[str, Any], reverty_code: str, python_code: str, errors: str) -> Tuple[str, str, AnalysisResult]:
         """
-        Fixes Reverty code based on the contract and errors.
+        Fixes Reverty code based on the contract, python code and errors.
         """
 
         coder_prompt = generate_test_fix_request(contract, reverty_code, python_code, errors)
-        return self._build_code(coder_prompt)
+        reverty_code = self._generate_code(coder_prompt)
+        
+        return self._validate_code(reverty_code)
 
+    def _generate_code(self, coder_prompt: str) -> str:
 
-    def _build_code(self, coder_prompt: str) -> Tuple[str, str, AnalysisResult]:
         """
-        Generates implementation code based on the coder_prompt.
+        Generates Reverty code based on the coder prompt (can be initial or fix prompt).
         """
-
+        
         response = self.client.generate(
             user_prompt=coder_prompt,
             system_prompt=CODER_SYSTEM_PROMPT + "\n\n" + self.grammar,
@@ -61,6 +65,14 @@ class CoderAgent(Agent):
         print(f"[Coder Agent] Response: {response}")
         reverty_code_json = self._extract_json(response)
         reverty_code = reverty_code_json["code"] + "\n"
+
+        return reverty_code
+
+
+    def _validate_code(self, reverty_code: str) -> Tuple[str, str, AnalysisResult]:
+        """
+        Validates Reverty code doing multiple iterations of parsing, transpiling, linting and type checking.
+        """
 
         print(f"[Coder Agent] Reverty Code: {json.dumps(reverty_code, indent=2)}")
         final_status = AnalysisResult(Status.ERROR, "")
@@ -107,18 +119,14 @@ class CoderAgent(Agent):
 
                 # --- TYPE CHECKING ---
                 # Check for type errors
-                type_checker_response = self._check_type_errors(
-                    python_code, reverty_code
-                )
+                type_checker_response = self._check_type_errors(python_code, reverty_code)
 
                 if type_checker_response.status == Status.ERROR:
                     final_status = AnalysisResult(Status.ERROR, "Type checking failed.")
                     reverty_code = type_checker_response.message
                     continue
 
-                final_status = AnalysisResult(
-                    Status.SUCCESS, "Code built successfully."
-                )
+                final_status = AnalysisResult(Status.SUCCESS, "Code built successfully.")
 
                 print("[Coder] Python code: ", python_code)
 
@@ -144,7 +152,7 @@ class CoderAgent(Agent):
 
         # If there's a parsing error, fix it
         if parser_response.status == Status.ERROR:
-            reverty_code = self._fix_code(
+            reverty_code = self._fix_static_errors(
                 errors=parser_response.message,
                 reverty_code=reverty_code,
                 error_type=ErrorType.PARSING.value,
@@ -165,7 +173,7 @@ class CoderAgent(Agent):
 
         # If there's a transpilation error, fix it
         if transpiler_response.status == Status.ERROR:
-            reverty_code = self._fix_code(
+            reverty_code = self._fix_static_errors(
                 errors=transpiler_response.message,
                 reverty_code=reverty_code,
                 error_type=ErrorType.TRANSPILATION.value,
@@ -186,7 +194,7 @@ class CoderAgent(Agent):
 
         # If there's a linting error, fix it
         if linter_response.status == Status.ERROR:
-            reverty_code = self._fix_code(
+            reverty_code = self._fix_static_errors(
                 errors=linter_response.message,
                 reverty_code=reverty_code,
                 error_type=ErrorType.LINTING.value,
@@ -207,7 +215,7 @@ class CoderAgent(Agent):
 
         # If there's a type error, fix it
         if type_checker_response.status == Status.ERROR:
-            reverty_code = self._fix_code(
+            reverty_code = self._fix_static_errors(
                 errors=type_checker_response.message,
                 reverty_code=reverty_code,
                 error_type=ErrorType.TYPE_CHECKING.value,
@@ -219,7 +227,7 @@ class CoderAgent(Agent):
         # Return success status
         return AnalysisResult(Status.SUCCESS, type_checker_response.message)
 
-    def _fix_code(self, errors: str, reverty_code: str, error_type: str) -> AnalysisResult:
+    def _fix_static_errors(self, errors: str, reverty_code: str, error_type: str) -> AnalysisResult:
         """
         Fixes Reverty code based on error messages.
         """

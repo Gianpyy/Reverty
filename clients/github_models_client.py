@@ -1,6 +1,7 @@
 import requests
 from config import github_token
 from clients.llm_client_abstract import LLMClient
+from config import LLM_TEMPERATURE
 
 
 class GitHubModelsClient(LLMClient):
@@ -37,7 +38,7 @@ class GitHubModelsClient(LLMClient):
             payload = {
                 "model": model,
                 "messages": messages,
-                "temperature": 0.2,
+                "temperature": LLM_TEMPERATURE,
                 "max_tokens": 4000,
             }
 

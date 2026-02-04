@@ -10,7 +10,7 @@ from helpers.enums import LLMClientType
 from clients.ollama_client import OllamaClient
 from clients.github_models_client import GitHubModelsClient
 from helpers.enums import Status, RequestType
-from config import MAX_ORCHESTRATOR_ITERATIONS
+from config import MAX_ORCHESTRATOR_ITERATIONS, OLLAMA_LLM_MODEL
 
 
 class Orchestrator:
@@ -31,7 +31,7 @@ class Orchestrator:
 
             case LLMClientType.OLLAMA:
                 print("[Orchestrator] Using OLLAMA LLM")
-                self.client = OllamaClient(model="qwen2.5-coder:7b")
+                self.client = OllamaClient(model = OLLAMA_LLM_MODEL)
 
             case LLMClientType.GITHUB_MODELS:
                 print("[Orchestrator] Using GITHUB MODELS LLM")
@@ -74,11 +74,11 @@ class Orchestrator:
         for i in range(MAX_ORCHESTRATOR_ITERATIONS):
             print(f"[Orchestrator] --------------- Starting iteration {i + 1}/{MAX_ORCHESTRATOR_ITERATIONS} ---------------")
             # 3. Generate Reverty/Python code with result based on request type (starting code generation or fix code)
-            result = self._generate_code(contract)
+            result = self._generate_or_fix_code(contract)
 
             if result.status == Status.SUCCESS:
                 # 4. Build test suite
-                self._generate_tests(contract)
+                self._generate_or_fix_tests(contract)
 
                 # 5. Test the code
                 tester_result = self._execute_tests(contract)
@@ -121,14 +121,14 @@ class Orchestrator:
         contract = self.architect.create_contract(user_prompt, complexity)
         return contract
 
-    def _generate_code(self, contract) -> AnalysisResult:
+    def _generate_or_fix_code(self, contract) -> AnalysisResult:
         """
         Interacts with the CoderAgent to generate Reverty code with its Python equivalent.
         """
 
         if self.request_type == RequestType.INITIAL:
             print("\n[Orchestrator] Generating Reverty code...")
-            self.reverty_code, self.python_code, result = self.coder.generate_code(contract)
+            self.reverty_code, self.python_code, result = self.coder.build_initial_code(contract)
             return result
 
         elif self.request_type == RequestType.FIX_CODE or self.request_type == RequestType.FIX_BOTH:
@@ -138,7 +138,7 @@ class Orchestrator:
 
         return AnalysisResult(status=Status.SUCCESS, message="No coding actions needed.")
 
-    def _generate_tests(self, contract):
+    def _generate_or_fix_tests(self, contract):
         """
         Interacts with the Tester Agent to generate tests.
         """

@@ -1,6 +1,7 @@
 import requests
 from clients.llm_client_abstract import LLMClient
 from pprint import pprint
+from config import LLM_TEMPERATURE
 
 
 class OllamaClient(LLMClient):
@@ -41,7 +42,7 @@ class OllamaClient(LLMClient):
                 "messages": messages,
                 "stream": False,
                 "options": {
-                    "temperature": 0.3,
+                    "temperature": LLM_TEMPERATURE,
                 },
             }
 
