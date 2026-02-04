@@ -21,14 +21,7 @@ class Agent:
         except json.JSONDecodeError:
             pass
 
-        # 2. Try direct parsing code
-        try:
-            json_block = {"code": response}
-            return json_block
-        except json.JSONDecodeError:
-            pass
-
-        # 3. Try extracting from markdown code blocks
+        # 2. Try extracting from markdown code blocks
         try:
             if "```json" in response:
                 block = response.split("```json")[1].split("```")[0].strip()
@@ -44,10 +37,13 @@ class Agent:
             elif "```" in response:
                 block = response.split("```")[1].split("```")[0].strip()
                 return json.loads(block)
+            else:
+                json_block = {"code": response}
+                return json_block
         except json.JSONDecodeError:
             pass
-
-        # 4. Try finding the first '{' and last '}' (greedy)
+            
+        # 3. Try finding the first '{' and last '}' (greedy)
         try:
             start = response.find("{")
             end = response.rfind("}")
@@ -57,7 +53,7 @@ class Agent:
         except json.JSONDecodeError:
             pass
 
-        # 5. Try finding the largest valid JSON object (nested braces)
+        # 4. Try finding the largest valid JSON object (nested braces)
         # This is a heuristic for when the model outputs multiple JSON-like things
         try:
             stack = []

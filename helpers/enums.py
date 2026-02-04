@@ -1,5 +1,3 @@
-from typing import List
-from typing import Optional
 from enum import Enum
 from dataclasses import dataclass
 
@@ -31,7 +29,9 @@ class RequestType(Enum):
     """Type of request for coder agent."""
     
     INITIAL = "initial"
-    FIX = "fix"
+    FIX_CODE = "fix_code"
+    FIX_TESTS = "fix_tests"
+    FIX_BOTH = "fix_both"
 
 @dataclass
 class AnalysisResult:

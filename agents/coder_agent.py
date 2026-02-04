@@ -10,8 +10,9 @@ from tools.linter import Linter
 from tools.type_checker import TypeChecker
 from helpers.prompt_generator import generate_test_fix_request, generate_coder_request, generate_static_fix_request
 from lark import Tree
-from helpers.enums import AnalysisResult, Status, ErrorType, RequestType
+from helpers.enums import AnalysisResult, Status, ErrorType
 from config import MAX_VALIDATION_ITERATIONS
+
 
 class CoderAgent(Agent):
     """
@@ -23,37 +24,35 @@ class CoderAgent(Agent):
         super().__init__(client)
         self.model = model
         self.grammar = grammar
+        self.contract : Dict[str, Any] | None = None
         self.parser = Parser(grammar)
         self.transpiler = Transpiler()
         self.linter = Linter()
         self.type_checker = TypeChecker()
 
-    def run(self, contract: Dict[str, Any], request_type: RequestType = RequestType.INITIAL, reverty_code: str = "", python_code: str = "", errors: str = "") -> Tuple[str, str, AnalysisResult]:
+    def generate_code(self, contract: Dict[str, Any]) -> Tuple[str, str, AnalysisResult]:
         """
-        Runs the coder_prompt generator and the code builder.
+        Generates Reverty code based on the contract.
         """
-
-        coder_prompt = self._coder_prompt_generator(contract, request_type, reverty_code, python_code, errors)
-
+        
+        self.contract = contract
+        coder_prompt = generate_coder_request(contract)
         return self._build_code(coder_prompt)
 
-    def _coder_prompt_generator(self, contract: Dict[str, Any], request_type: RequestType = RequestType.INITIAL, reverty_code: str = "", python_code: str = "", errors: str = "") -> str:
+    def fix_code(self, contract: Dict[str, Any], reverty_code: str, python_code: str, errors: str) -> Tuple[str, str, AnalysisResult]:
         """
-        Generates a prompt for the coder based on the request type.
+        Fixes Reverty code based on the contract and errors.
         """
-        if request_type == RequestType.INITIAL:
-            coder_prompt = generate_coder_request(contract)
-        elif request_type == RequestType.FIX:
-            coder_prompt = generate_test_fix_request(contract, reverty_code, python_code, errors)
 
-        return coder_prompt
+        coder_prompt = generate_test_fix_request(contract, reverty_code, python_code, errors)
+        return self._build_code(coder_prompt)
 
 
     def _build_code(self, coder_prompt: str) -> Tuple[str, str, AnalysisResult]:
         """
         Generates implementation code based on the coder_prompt.
         """
-        
+
         response = self.client.generate(
             user_prompt=coder_prompt,
             system_prompt=CODER_SYSTEM_PROMPT + "\n\n" + self.grammar,
@@ -68,7 +67,7 @@ class CoderAgent(Agent):
 
         try:
             for i in range(MAX_VALIDATION_ITERATIONS):
-                print(f"\n[Coder] Iteration {i + 1}...")
+                print(f"\n[Coder Agent] --------------- Starting validation loop: iteration {i + 1}/{MAX_VALIDATION_ITERATIONS} ---------------")
 
                 # --- PARSING ---
                 # Parse Reverty code to AST
@@ -97,7 +96,6 @@ class CoderAgent(Agent):
                 # Get transpiled Python code
                 python_code = transpiler_response.message
 
-
                 # --- LINTING ---
                 # Check for linting errors
                 linter_response = self._check_linting_errors(python_code, reverty_code)
@@ -118,20 +116,24 @@ class CoderAgent(Agent):
                     reverty_code = type_checker_response.message
                     continue
 
-                final_status = AnalysisResult(Status.SUCCESS, "Code built successfully.")
+                final_status = AnalysisResult(
+                    Status.SUCCESS, "Code built successfully."
+                )
 
                 print("[Coder] Python code: ", python_code)
 
                 return reverty_code, python_code, final_status
 
-
         except Exception:
             traceback.print_exc()
-            final_status = AnalysisResult(Status.ERROR, "Exception occurred during code building.")
+            final_status = AnalysisResult(
+                Status.ERROR, "Exception occurred during code building."
+            )
 
         finally:
-            print(f"[Coder] Finished execution with status: {final_status.status.value}")     
-        
+            print(f"[Coder] Finished execution with status: {final_status.status.value}")
+
+        return reverty_code, "", final_status
 
     def _parse_reverty_code(self, reverty_code: str) -> AnalysisResult:
         """
@@ -175,9 +177,7 @@ class CoderAgent(Agent):
         # Return Python code
         return AnalysisResult(Status.SUCCESS, transpiler_response.message)
 
-    def _check_linting_errors(
-        self, python_code: str, reverty_code: str
-    ) -> AnalysisResult:
+    def _check_linting_errors(self, python_code: str, reverty_code: str) -> AnalysisResult:
         """
         Lints Python code. If there's a linting error, it fixes it and returns the fixed code.
         """
@@ -219,9 +219,7 @@ class CoderAgent(Agent):
         # Return success status
         return AnalysisResult(Status.SUCCESS, type_checker_response.message)
 
-    def _fix_code(
-        self, errors: str, reverty_code: str, error_type: str
-    ) -> AnalysisResult:
+    def _fix_code(self, errors: str, reverty_code: str, error_type: str) -> AnalysisResult:
         """
         Fixes Reverty code based on error messages.
         """
@@ -231,6 +229,7 @@ class CoderAgent(Agent):
             reverty_code=reverty_code,
             errors=errors,
             error_type=error_type,
+            contract=self.contract,
         )
 
         # Call LLM

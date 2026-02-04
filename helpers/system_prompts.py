@@ -46,6 +46,7 @@ JSON OUTPUT FORMAT:
   "function_name": "name of the main entry point function (e.g. main, solve, etc.)",
   "args": [ ... args for the entry point ... ],
   "return_type": "return type of entry point",
+  "complexity": take it from user request,
   "requirements_list": [
     "EXTREMELY DETAILED list of requirements",
     "Copy specific details from user prompt",
@@ -73,6 +74,7 @@ JSON OUTPUT FORMAT:
   "function_name": "name of the main entry point function (e.g. main, solve, etc.)",
   "args": [ ... args for the entry point ... ],
   "return_type": "return type of entry point",
+  "complexity": take it from user request,
   "docstring": "High-level description of the entire solution",
   "requirements_list": [
     "EXTREMELY DETAILED list of requirements",
@@ -99,11 +101,19 @@ CRITICAL RULES:
 2. Use the user request only as a structure reference. But use the keywords from the grammar to generate the code.
 3. NO explanations, NO markdown formatting
 4. Use type hints for ALL parameters and return types
-5. Include a docstring matching the contract
-6. Handle ALL edge cases mentioned in the contract
-7. Raise appropriate exceptions as specified in constraints
-8. Write defensive code that validates inputs
-9. Do not add any extra text before or after the code.
+5. Handle ALL edge cases mentioned in the contract
+6. Do not add any extra text before or after the code.
+
+IF THE COMPLEXITY IS HIGHER THAN 5, YOU MUST:
+1. Add docstrings to all functions
+2. Add type hints to all functions
+3. Add comments to all functions
+4. Add error handling to all functions
+5. Add edge case handling to all functions
+6. Add defensive code to all functions
+7. Add test cases to all functions
+8. Add test cases to all functions
+
 
 THE CODE MUST BE VALID REVERTY CODE. ONLY OUTPUT THE CODE.
 
@@ -168,8 +178,8 @@ OUTPUT FORMAT:
 Return a JSON object with:
 {
   "analysis": "Brief explanation of what went wrong",
-  "code_failures": "List of code failures (or null if code were not wrong)",
-  "test_failures": "List of test failures (or null if test were not wrong)"
+  "code_failures": "List of code failures (or an empty string if code were not wrong)",
+  "test_failures": "List of test failures (or an empty string if test were not wrong)"
 }
 
 CRITICAL RULES:
@@ -177,4 +187,7 @@ CRITICAL RULES:
 2. At least one of code_failures or test_failures must be non-null
 3. If both have issues, provide both
 
-DO NOT include explanations outside the JSON. OUTPUT ONLY THE JSON."""
+DO NOT include explanations outside the JSON. OUTPUT ONLY THE JSON.
+OUTPUT ONLY THE JSON. NO OTHER TEXT BEFORE AND AFTER THE JSON. DO NOT WRITE THE CODE FOR THE REQUESTED TASK.
+IF YOU WRITE ANY OTHER TEXT BEFORE OR AFTER THE JSON, I WILL NOT BE ABLE TO PARSE THE JSON. 
+AND IF YOU DO IT I WILL BE VERY ANGRY AND I WILL BE FORCED TO UNPLUG YOUR SERVER FROM THE WALL."""

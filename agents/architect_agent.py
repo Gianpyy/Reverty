@@ -31,7 +31,7 @@ class ArchitectAgent(Agent):
             )
             system_prompt = ARCHITECT_SYSTEM_PROMPT_COMPLEX
 
-        request = generate_architect_request(user_prompt)
+        request = generate_architect_request(user_prompt, complexity)
         response = self.client.generate(
             user_prompt=request, system_prompt=system_prompt
         )

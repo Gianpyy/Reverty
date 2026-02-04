@@ -29,12 +29,12 @@ class EvaluatorAgent(Agent):
 
             # Retry for bad response
             i = 0
-            while not isinstance(evaluation["complexity"], int) and i < max_retries:
+            while not isinstance(evaluation.get("complexity"), int) and i < max_retries:
                 i += 1
                 response = self._make_request(user_prompt)
                 evaluation = self._extract_json(response)
 
-            if not isinstance(evaluation["complexity"], int):
+            if not isinstance(evaluation.get("complexity"), int):
                 return {"complexity": 5}  # Default complexity
 
             return evaluation
