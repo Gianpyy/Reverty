@@ -196,7 +196,7 @@ class Transpiler:
             transpiler = self.RevertyToPython()
             python_code = transpiler.transform(ast)
             python_code += "\n"
-
+            print(python_code)
             print("[Transpiler] Conversion complete.")
             return AnalysisResult(status=Status.SUCCESS, message=python_code)
 

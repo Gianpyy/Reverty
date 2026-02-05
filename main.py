@@ -5,11 +5,7 @@ from helpers.enums import LLMClientType
 
 def parse_ast_string_to_sac(ast_string):
     """
-    Converte la stringa di Lark in sac.TreeItem.
-    Icone:
-    - Radice: 'cpu' (o 'diagram-3')
-    - Non Terminali (Padri): 'square' o 'app'
-    - Terminali (Foglie): 'circle-fill' o 'dot'
+    Converts Lark AST string to a list of TreeItem for visualization.
     """
     lines = ast_string.strip().split('\n')
     if not lines:
@@ -19,29 +15,24 @@ def parse_ast_string_to_sac(ast_string):
     stack = []
 
     for line in lines:
-        # Calcola indentazione
+        # Calculate indentation level
         indent = len(line) - len(line.lstrip())
-        # Pulisce il nome dai caratteri grafici di Lark
+        # Clean the node name by removing Lark's tree formatting characters
         name = line.strip().replace('|--', '').replace('`--', '').replace('|', '').strip()
         
-        # Definiamo l'icona base come "terminale" (pallina)
-        # Se poi scopriamo che ha dei figli, la trasformeremo in "quadrato"
-        new_item = sac.TreeItem(
-            label=name
-        )
+        new_item = sac.TreeItem(label=name)
         
         if indent == 0:
-            # ICONA SPECIALE RADICE
+            # Handle root node
             items.append(new_item)
             stack = [(0, new_item)]
         else:
-            # Trova il padre corretto
+            # Find the correct parent by comparing indentation levels
             while stack and stack[-1][0] >= indent:
                 stack.pop()
             
             if stack:
                 parent = stack[-1][1]
-                
                 if parent.children is None:
                     parent.children = []
                 parent.children.append(new_item)
@@ -56,15 +47,14 @@ def main():
 
     with st.sidebar:
 
-        # Creiamo 3 colonne: le due laterali fanno da "cuscinetto"
+
         col_side1, col_logo, col_side2 = st.columns([0.2, 2, 0.2])
         
         with col_logo:
-        # Riduci il width per rimpicciolirlo ulteriormente se serve
             st.image("./assets/logos/reverty_logo.png", width=180)
 
         st.header("Impostazioni")
-        client_mapping = {"Mock Client": LLMClientType.MOCK, "GitHub Models": LLMClientType.GITHUB_MODELS}
+        client_mapping = {"Mock Client": LLMClientType.MOCK, "GitHub Models": LLMClientType.GITHUB_MODELS, "Ollama": LLMClientType.OLLAMA}
         selected_client_str = st.selectbox("Client LLM", list(client_mapping.keys()))
         selected_client_enum = client_mapping[selected_client_str]
         
@@ -126,7 +116,7 @@ def main():
                         index=0,
                         open_all=True,
                         show_line=True,
-                        size='sm' # 'sm' rende l'albero più compatto e leggibile
+                        size='sm'
                     )
                 else:
                     st.error("Nessun AST disponibile.")
