@@ -28,6 +28,13 @@ def print_ast(node, indent="", last=True):
     else:
         print(indent + prefix + str(node))
 
+def print_ast_string(ast_tree: Tree) -> str:
+    """
+    Prints the Abstract Syntax Tree (AST) as String.
+    """
+    ast_string = ast_tree.pretty()
+    return ast_string
+
 
 def build_errors_string(errors: List[str]) -> str:
     """Builds a string from a list of errors."""

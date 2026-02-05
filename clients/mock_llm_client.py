@@ -107,10 +107,6 @@ def test_factorial_positive():
 def test_factorial_zero():
     assert factorial(0) == 1
 
-
-def test_factorial_negative():
-    with pytest.raises(ValueError):
-        factorial(-1)
             """
 
         # Hardcoded response for test agent

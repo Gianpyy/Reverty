@@ -1,3 +1,4 @@
+from helpers.utils import print_ast_string
 from helpers.utils import print_ast
 from helpers.system_prompts import CODER_SYSTEM_PROMPT
 from typing import Dict, Any, Tuple
@@ -8,11 +9,12 @@ from tools.parser import Parser
 from tools.transpiler import Transpiler
 from tools.linter import Linter
 from tools.type_checker import TypeChecker
-from helpers.prompt_generator import generate_test_fix_request, generate_coder_request, generate_static_fix_request
+from helpers.prompt_generator import generate_test_fix_request, generate_initial_code_request, generate_static_fix_request
 from lark import Tree
 from helpers.enums import AnalysisResult, Status, ErrorType
 from config import MAX_VALIDATION_ITERATIONS
 
+import streamlit as st
 
 class CoderAgent(Agent):
     """
@@ -36,7 +38,7 @@ class CoderAgent(Agent):
         """
         
         self.contract = contract
-        coder_prompt = generate_coder_request(contract)
+        coder_prompt = generate_initial_code_request(contract)
         reverty_code = self._generate_code(coder_prompt)
 
         return self._validate_code(reverty_code)
@@ -94,6 +96,9 @@ class CoderAgent(Agent):
                 # Get AST from response
                 ast = parser_response.message
                 print_ast(ast)
+
+                ast_string = print_ast_string(ast)
+                st.session_state["shared_ast_string"] = ast_string
 
                 # --- TRANSPILATION ---
                 # Transpile AST to Python

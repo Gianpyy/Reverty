@@ -71,7 +71,7 @@ def generate_test_fix_request(contract: Dict[str, Any], reverty_code: str, pytho
     return fix_parsing_prompt
 
 
-def generate_coder_request(contract: Dict[str, Any]) -> str:
+def generate_initial_code_request(contract: Dict[str, Any]) -> str:
     """
     Generates a request for the coder agent.
     """

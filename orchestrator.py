@@ -87,7 +87,9 @@ class Orchestrator:
                 # Check if the code is correct, otherwise fix it and retry
                 if tester_result["status"] == Status.SUCCESS.value:
                     print("\n[Orchestrator] Workflow finished successfully!")
-                    return {"status": result.status.value, "code": self.reverty_code}
+
+                    # TODO: Costruire Payload per inviare al client
+                    return {"status": result.status.value, "reverty_code": self.reverty_code, "python_code": self.python_code}
                 else:
                     self.code_errors = tester_result["code_failures"]
                     self.test_errors = tester_result["test_failures"]
@@ -100,7 +102,9 @@ class Orchestrator:
 
         # Exit from loop if max retries reached
         print("\n[Orchestrator] Workflow finished. Reason: max retries reached")
-        return {"status": result.status.value, "code": self.reverty_code}
+
+        # TODO: Costruire Payload per inviare al client
+        return {"status": result.status.value, "reverty_code": self.reverty_code, "python_code": self.python_code}
 
     # --- Coordination Actions ---
     def _evaluate_request_complexity(self, user_prompt: str):
