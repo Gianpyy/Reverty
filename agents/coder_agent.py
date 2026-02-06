@@ -1,4 +1,3 @@
-from gui.conversation_logger import log_message
 from helpers.utils import print_ast_string
 from helpers.utils import print_ast
 from helpers.system_prompts import CODER_SYSTEM_PROMPT
@@ -42,11 +41,11 @@ class CoderAgent(Agent):
         self.contract = contract
         coder_prompt = generate_initial_code_request(contract)
 
-        log_message(f"[CODER] Initial code prompt:\n{coder_prompt}")
+        self.log(f"[CODER] Initial code prompt:\n{coder_prompt}")
 
         reverty_code = self._generate_code(coder_prompt)
 
-        log_message(f"[CODER] Initial code:\n{reverty_code}")
+        self.log(f"[CODER] Initial code:\n{reverty_code}")
 
         return self._validate_code(reverty_code)
 
@@ -57,11 +56,11 @@ class CoderAgent(Agent):
 
         coder_prompt = generate_test_fix_request(contract, reverty_code, python_code, errors)
 
-        log_message(f"Fix code prompt:\n{coder_prompt}")
+        self.log(f"Fix code prompt:\n{coder_prompt}")
 
         reverty_code = self._generate_code(coder_prompt)
 
-        log_message(f"Fixed code:\n{coder_prompt}")
+        self.log(f"Fixed code:\n{coder_prompt}")
 
         return self._validate_code(reverty_code)
 
@@ -76,7 +75,7 @@ class CoderAgent(Agent):
             system_prompt=CODER_SYSTEM_PROMPT + "\n\n" + self.grammar,
         )
 
-        print(f"[Coder Agent] Response: {response}")
+        self.log(f"[Coder Agent] Response: {response}")
         reverty_code_json = self._extract_json(response)
         reverty_code = reverty_code_json["code"] + "\n"
 
@@ -88,12 +87,12 @@ class CoderAgent(Agent):
         Validates Reverty code doing multiple iterations of parsing, transpiling, linting and type checking.
         """
 
-        print(f"[Coder Agent] Reverty Code: {json.dumps(reverty_code, indent=2)}")
+        self.log(f"[Coder Agent] Reverty Code: {json.dumps(reverty_code, indent=2)}")
         final_status = AnalysisResult(Status.ERROR, "")
 
         try:
             for i in range(MAX_VALIDATION_ITERATIONS):
-                print(f"\n[Coder Agent] --------------- Starting validation loop: iteration {i + 1}/{MAX_VALIDATION_ITERATIONS} ---------------")
+                self.log(f"\n[Coder Agent] --------------- Starting validation loop: iteration {i + 1}/{MAX_VALIDATION_ITERATIONS} ---------------")
 
                 # --- PARSING ---
                 # Parse Reverty code to AST
@@ -145,7 +144,7 @@ class CoderAgent(Agent):
 
                 final_status = AnalysisResult(Status.SUCCESS, "Code built successfully.")
 
-                print("[Coder] Python code: ", python_code)
+                self.log(f"[Coder] Python code: {python_code}")
 
                 return reverty_code, python_code, final_status
 
@@ -156,7 +155,7 @@ class CoderAgent(Agent):
             )
 
         finally:
-            print(f"[Coder] Finished execution with status: {final_status.status.value}")
+            self.log(f"[Coder] Finished execution with status: {final_status.status.value}")
 
         return reverty_code, "", final_status
 
@@ -258,7 +257,7 @@ class CoderAgent(Agent):
         )
 
         # Call LLM
-        print(f"\n[Coder Agent] Fix Prompt: {fix_prompt}")
+        self.log(f"\n[Coder Agent] Fix Prompt: {fix_prompt}")
         response = self.client.generate(
             user_prompt=fix_prompt,
             system_prompt=CODER_SYSTEM_PROMPT + "\n\n" + self.grammar,

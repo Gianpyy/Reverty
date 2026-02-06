@@ -20,11 +20,12 @@ class Orchestrator:
     Orchestrates the entire workflow of the system.
     """
 
-    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK, temperature: float = 0.3):
+    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK, temperature: float = 0.3, on_log = None):
         """
         Initializes the Orchestrator with the necessary agents and LLM client.
         """
         self.grammar = load_grammar()
+        self.on_log = on_log
 
         match llm_client_type:
             case LLMClientType.MOCK:
@@ -57,19 +58,29 @@ class Orchestrator:
         self.code_errors: str | None = None
         self.test_errors: str | None = None
 
+        # Set logger for agents
+        self.set_logger(on_log)
+
+    def set_logger(self, on_log):
+        """
+        Sets the logging callback and propagates it to agents.
+        """
+        self.on_log = on_log
+        self.evaluator.set_logger(on_log)
+        self.architect.set_logger(on_log)
+        self.coder.set_logger(on_log)
+        self.test_generator.set_logger(on_log)
+        self.tester.set_logger(on_log)
+
     # --- Main Flow ---
 
-    def run(self, user_prompt: str, on_log = None):
+
+    def run(self, user_prompt: str):
 
         """
         Executes the entire compilation and translation workflow.
         """
-        
-        def log_message(msg):
-            if on_log:
-                on_log(msg)
-            print(msg)
-        
+
         print(f"--- Starting Workflow for: {user_prompt} ---")
 
         log_message(f"↺ Generating {self.request_type.value.upper()} for the requested task.")

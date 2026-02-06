@@ -19,14 +19,14 @@ class ArchitectAgent(Agent):
         Creates a formal contract/specification for the requested code.
         """
 
-        print(f"[Architect Agent] Designing contract for: '{user_prompt}'...")
+        self.log(f"[Architect Agent] Designing contract for: '{user_prompt}'...")
         if complexity <= 5:
-            print(
+            self.log(
                 f"[Architect Agent] Complexity is {complexity}, using simple system prompt."
             )
             system_prompt = ARCHITECT_SYSTEM_PROMPT_SIMPLE
         else:
-            print(
+            self.log(
                 f"[Architect Agent] Complexity is {complexity}, using complex system prompt."
             )
             system_prompt = ARCHITECT_SYSTEM_PROMPT_COMPLEX
@@ -41,6 +41,6 @@ class ArchitectAgent(Agent):
             contract = self._extract_json(response)
             return contract
         except json.JSONDecodeError as e:
-            print(f"[Architect Agent] Error decoding JSON: {e}")
-            print(f"[Architect Agent] Response was: {response[:200]}")
+            self.log(f"[Architect Agent] Error decoding JSON: {e}")
+            self.log(f"[Architect Agent] Response was: {response[:200]}")
             return {}
