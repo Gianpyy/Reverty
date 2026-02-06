@@ -38,7 +38,7 @@ class ArchitectAgent(Agent):
 
         # Try to parse JSON
         try:
-            contract = self._extract_json(response)
+            contract = self.extract_response(response)
             return contract
         except json.JSONDecodeError as e:
             print(f"[Architect Agent] Error decoding JSON: {e}")

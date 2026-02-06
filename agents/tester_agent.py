@@ -45,16 +45,12 @@ class TesterAgent(Agent):
                 user_prompt=tester_prompt, system_prompt=TESTER_SYSTEM_PROMPT
             )
 
-            response_json = self._extract_json(response)
+            response_json = self.extract_response(response)
 
             final_result = {
                 "status": Status.ERROR.value,
-                "code_failures": response_json.get("code_failures")
-                if response_json.get("code_failures") != ""
-                else None,
-                "test_failures": response_json.get("test_failures")
-                if response_json.get("test_failures") != ""
-                else None,
+                "code_failures": response_json.get("code_failures") if response_json.get("code_failures") != "" else None,
+                "test_failures": response_json.get("test_failures") if response_json.get("test_failures") != "" else None,
             }
 
         return final_result

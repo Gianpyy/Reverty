@@ -1,8 +1,7 @@
-from pprint import pprint
-from toon_format import DecodeOptions
+from toon_format import DecodeOptions, decode
 from typing import Dict, Any
 import json
-from toon_format import encode, decode
+from textwrap import dedent
 
 class Agent:
     """
@@ -12,7 +11,7 @@ class Agent:
     def __init__(self, client):
         self.client = client
 
-    def _extract_json(self, response: str) -> Dict[str, Any]:
+    def extract_response(self, response: str) -> Dict[str, Any]:
         """Robustly extracts JSON from a string, handling markdown and extra text."""
 
         print(f"[EXTRACT JSON] Response: {response}")
@@ -37,15 +36,10 @@ class Agent:
                 json_block = {"code": block}
                 return json_block
             elif "```toon" in response:
-                block = response.split("```toon")[1].split("```")[0].strip()
-                object = decode(block, DecodeOptions(indent=4, strict=False)) # TODO: extract function
-                return object
+                return self._extract_toon(response)
             elif "```" in response:
                 block = response.split("```")[1].split("```")[0].strip()
                 return json.loads(block)
-            else:
-                json_block = {"code": response}
-                return json_block
         except json.JSONDecodeError:
             pass
             
@@ -81,5 +75,23 @@ class Agent:
         except Exception:
             pass
 
-        # If all fails, raise error to be handled by caller
-        raise json.JSONDecodeError("Could not extract JSON from response", response, 0)
+        # If all fails, return raw response as code
+        return {"code": response}
+
+    def _extract_toon(self, response: str) -> Dict[str, Any]:
+        """
+        Extracts and parses TOON content, handling indentation and whitespace safely.
+        """
+        try:
+            # Isolate toon block
+            raw_block = response.split("```toon")[1].split("```")[0]
+            
+            # Remove common line indentation
+            clean_block = dedent(raw_block).strip()
+            
+            # Pass the clean block to the decoder
+            return decode(clean_block, DecodeOptions(indent=4, strict=False))
+            
+        except Exception as e:
+            print(f"[Evaluator Agent] Error decoding TOON: {e}")
+            raise json.JSONDecodeError("Failed to parse TOON", response, 0)

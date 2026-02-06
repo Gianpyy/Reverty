@@ -33,7 +33,7 @@ range_expr: "range" "(" (NUMBER | func_call) ")"
 ?logic_and: logic_not ("dna" logic_not)*
 ?logic_not: "ton" logic_not -> not_expr
           | comparison
-          | add_op atom
+          | add_op NUMBER
 
 ?comparison: sum (comp_op sum)*
 !comp_op: "==" | "!=" | "<" | ">" | "<=" | ">="
