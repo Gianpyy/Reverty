@@ -1,0 +1,33 @@
+/* Contenitore del bottone */
+div[data-testid="stButton"] {
+    display: flex;
+    justify-content: center;
+    /* centra orizzontalmente */
+    align-items: center;
+    /* centra verticalmente se c'è altezza fissa */
+}
+
+/* Bottone Primary rotondo e centrato */
+button[kind="primary"] {
+    border-radius: 25px;
+    background-color: #3A607F;
+    padding: 0.5rem 1.5rem;
+    display: inline-block;
+    margin: 0 auto;
+    width: 30%;
+    border: none;
+}
+
+button[kind="primary"]:hover {
+    background-color: #284964;
+}
+
+/* Bottone Primary rotondo */
+button[kind="secondary"] {
+    border-radius: 15px;
+    padding: 0.5rem 1.5rem;
+    font-size: 8px !important;
+    color: white;
+    width: 80%;
+    height: 20px;
+}

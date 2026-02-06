@@ -1,6 +1,8 @@
+from pprint import pprint
+from toon_format import DecodeOptions
 from typing import Dict, Any
 import json
-
+from toon_format import encode, decode
 
 class Agent:
     """
@@ -34,6 +36,10 @@ class Agent:
                 block = response.split("```python")[1].split("```")[0].strip()
                 json_block = {"code": block}
                 return json_block
+            elif "```toon" in response:
+                block = response.split("```toon")[1].split("```")[0].strip()
+                object = decode(block, DecodeOptions(indent=4, strict=False)) # TODO: extract function
+                return object
             elif "```" in response:
                 block = response.split("```")[1].split("```")[0].strip()
                 return json.loads(block)

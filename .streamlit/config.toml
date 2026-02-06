@@ -1,0 +1,19 @@
+[theme]
+primaryColor = "#E7BA4D"           # Colore principale (bottoni, slider)
+backgroundColor = "#0E1117"        # Sfondo principale
+secondaryBackgroundColor = "#262730"  # Sfondo secondario (sidebar, container)
+textColor = "#FAFAFA"              # Colore del testo
+font = "sans serif"                # Font: "sans serif", "serif", o "monospace"
+
+
+# Esempio tema scuro personalizzato
+# primaryColor = "#00D9FF"         # Azzurro cyber
+# backgroundColor = "#0A0E27"      # Blu scuro
+# secondaryBackgroundColor = "#1A1F3A"  # Blu medio
+# textColor = "#E0E0E0"            # Grigio chiaro
+
+# Esempio tema chiaro
+# primaryColor = "#FF6B6B"
+# backgroundColor = "#FFFFFF"
+# secondaryBackgroundColor = "#F0F2F6"
+# textColor = "#262730"

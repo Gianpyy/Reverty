@@ -1,3 +1,4 @@
+from gui.conversation_logger import log_message
 from helpers.utils import print_ast_string
 from helpers.utils import print_ast
 from helpers.system_prompts import CODER_SYSTEM_PROMPT
@@ -31,6 +32,7 @@ class CoderAgent(Agent):
         self.transpiler = Transpiler()
         self.linter = Linter()
         self.type_checker = TypeChecker()
+        
 
     def build_initial_code(self, contract: Dict[str, Any]) -> Tuple[str, str, AnalysisResult]:
         """
@@ -39,7 +41,12 @@ class CoderAgent(Agent):
         
         self.contract = contract
         coder_prompt = generate_initial_code_request(contract)
+
+        log_message(f"[CODER] Initial code prompt:\n{coder_prompt}")
+
         reverty_code = self._generate_code(coder_prompt)
+
+        log_message(f"[CODER] Initial code:\n{reverty_code}")
 
         return self._validate_code(reverty_code)
 
@@ -49,8 +56,13 @@ class CoderAgent(Agent):
         """
 
         coder_prompt = generate_test_fix_request(contract, reverty_code, python_code, errors)
+
+        log_message(f"Fix code prompt:\n{coder_prompt}")
+
         reverty_code = self._generate_code(coder_prompt)
-        
+
+        log_message(f"Fixed code:\n{coder_prompt}")
+
         return self._validate_code(reverty_code)
 
     def _generate_code(self, coder_prompt: str) -> str:

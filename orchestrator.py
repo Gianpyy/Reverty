@@ -1,3 +1,5 @@
+import json
+from gui.conversation_logger import log_message
 from helpers.enums import AnalysisResult
 from agents.tester_agent import TesterAgent
 from agents.architect_agent import ArchitectAgent
@@ -11,14 +13,14 @@ from clients.ollama_client import OllamaClient
 from clients.github_models_client import GitHubModelsClient
 from helpers.enums import Status, RequestType
 from config import MAX_ORCHESTRATOR_ITERATIONS, OLLAMA_LLM_MODEL
-
+import streamlit as st
 
 class Orchestrator:
     """
     Orchestrates the entire workflow of the system.
     """
 
-    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK):
+    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK, temperature: float = 0.3):
         """
         Initializes the Orchestrator with the necessary agents and LLM client.
         """
@@ -31,11 +33,11 @@ class Orchestrator:
 
             case LLMClientType.OLLAMA:
                 print("[Orchestrator] Using OLLAMA LLM")
-                self.client = OllamaClient(model = OLLAMA_LLM_MODEL)
+                self.client = OllamaClient(temperature = temperature)
 
             case LLMClientType.GITHUB_MODELS:
                 print("[Orchestrator] Using GITHUB MODELS LLM")
-                self.client = GitHubModelsClient()
+                self.client = GitHubModelsClient(temperature = temperature)
 
             case _:
                 self.client = None
@@ -57,24 +59,41 @@ class Orchestrator:
 
     # --- Main Flow ---
 
-    def run(self, user_prompt: str):
+    def run(self, user_prompt: str, on_log = None):
+
         """
         Executes the entire compilation and translation workflow.
         """
+        
+        def log_message(msg):
+            if on_log:
+                on_log(msg)
+            print(msg)
+        
         print(f"--- Starting Workflow for: {user_prompt} ---")
+
+        log_message(f"↺ Generating {self.request_type.value.upper()} for the requested task.")
 
         # 1. Evaluate complexity
         complexity = self._evaluate_request_complexity(user_prompt)
 
+        log_message(f"Evaluated complexity of the requested task is {complexity}")
         print(f"[Orchestrator] Complexity: {complexity}")
 
         # 2. Define requirements and create the contract
         contract = self._design_technical_contract(user_prompt, complexity)
+        formatted_contract = json.dumps(contract, indent=2, ensure_ascii=False)
+        log_message(f"Technical Contract Created:\n{formatted_contract}")
+
 
         for i in range(MAX_ORCHESTRATOR_ITERATIONS):
             print(f"[Orchestrator] --------------- Starting iteration {i + 1}/{MAX_ORCHESTRATOR_ITERATIONS} ---------------")
+            log_message(f"----- STARTING ITERATION {i + 1}/{MAX_ORCHESTRATOR_ITERATIONS} -----")
             # 3. Generate Reverty/Python code with result based on request type (starting code generation or fix code)
+
+            log_message(f"↺ Generating initial code for {self.request_type.value.upper()} request.")
             result = self._generate_or_fix_code(contract)
+            log_message(f"Initial Reverty code generated:\n{self.reverty_code}")
 
             if result.status == Status.SUCCESS:
                 # 4. Build test suite
@@ -88,11 +107,16 @@ class Orchestrator:
                 if tester_result["status"] == Status.SUCCESS.value:
                     print("\n[Orchestrator] Workflow finished successfully!")
 
+                    st.session_state.shared_log_string += tester_result["status"] + "\n"
                     # TODO: Costruire Payload per inviare al client
                     return {"status": result.status.value, "reverty_code": self.reverty_code, "python_code": self.python_code}
                 else:
                     self.code_errors = tester_result["code_failures"]
                     self.test_errors = tester_result["test_failures"]
+
+                    st.session_state.shared_log_string += f"⚠️ Errore Test: {self.test_errors}\n"
+                    st.session_state.shared_log_string += f"❌ Errore Codice: {self.code_errors}\n"
+
                     self._set_new_request_type(self.code_errors, self.test_errors)
                     continue
             else:
@@ -107,7 +131,7 @@ class Orchestrator:
         return {"status": result.status.value, "reverty_code": self.reverty_code, "python_code": self.python_code}
 
     # --- Coordination Actions ---
-    def _evaluate_request_complexity(self, user_prompt: str):
+    def _evaluate_request_complexity(self, user_prompt: str) -> int:
         """
         Interacts with the Evaluator Agent to evaluate the complexity of the user prompt.
         """
@@ -174,3 +198,5 @@ class Orchestrator:
             self.request_type = RequestType.FIX_CODE
         elif test_errors is not None:
             self.request_type = RequestType.FIX_TESTS
+    
+    

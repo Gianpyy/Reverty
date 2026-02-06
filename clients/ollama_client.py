@@ -10,9 +10,7 @@ class OllamaClient(LLMClient):
     Requires Ollama to be installed and running.
     """
 
-    def __init__(
-        self, base_url: str = "http://localhost:11434", model: str = "llama3.2"
-    ):
+    def __init__(self, base_url: str = "http://localhost:11434", model: str = "llama3.2", temperature: float = 0.3):
         """
         Initialize Ollama client.
         """
@@ -20,6 +18,7 @@ class OllamaClient(LLMClient):
         self.base_url = base_url
         self.model = model
         self.requests = requests
+        self.temperature = temperature
 
     def generate(
         self, user_prompt: str, system_prompt: str = None, model: str = None
@@ -42,7 +41,7 @@ class OllamaClient(LLMClient):
                 "messages": messages,
                 "stream": False,
                 "options": {
-                    "temperature": LLM_TEMPERATURE,
+                    "temperature": self.temperature,
                 },
             }
 
