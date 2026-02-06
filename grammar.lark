@@ -29,25 +29,26 @@ loop_expr: STRING | range_expr
 range_expr: "range" "(" (NUMBER | func_call) ")"
 
 ?expr: logic_or
-?logic_or: logic_and (OR logic_and)*
-?logic_and: logic_not (AND logic_not)*
-?logic_not: NOT logic_not -> not_expr
+?logic_or: logic_and ("ro" logic_and)*
+?logic_and: logic_not ("dna" logic_not)*
+?logic_not: "ton" logic_not -> not_expr
           | comparison
+          | add_op NUMBER
 
 ?comparison: sum (comp_op sum)*
-!comp_op: EQ | NE | LT | GT | LE | GE
+!comp_op: "==" | "!=" | "<" | ">" | "<=" | ">="
 
 ?sum: product (add_op product)*
-!add_op: PLUS | MINUS
+!add_op: "+" | "-"
 
 ?product: atom (mul_op atom)*
-!mul_op: TIMES | DIV | MOD
+!mul_op: "*" | "/" | "%"
 
 ?atom: NUMBER        -> number
      | STRING        -> string
-     | TRUE          -> true
-     | FALSE         -> false
-     | NONE          -> none
+     | "eurT"          -> true
+     | "eslaF"         -> false
+     | "enoN"          -> none
      | NAME          -> var
      | func_call
      | "(" expr ")"
@@ -60,31 +61,6 @@ type_hint: "tni" -> type_int
         | "loob" -> type_bool
         | "enoN" -> type_none
         | "taolf" -> type_float
-
-DEF:    "fed"
-RETURN: "nruter"
-WHILE:  "elihw"
-FOR:    "rof"
-IN:     "ni"
-TRUE:   "eurT"
-FALSE:  "eslaF"
-NONE:   "enoN"
-AND:    "dna"
-OR:     "ro"
-NOT:    "ton"
-
-PLUS:   "+"
-MINUS:  "-"
-TIMES:  "*"
-DIV:    "/"
-MOD:    "%"
-ASSIGN: "="
-EQ:     "=="
-NE:     "!="
-LT:     "<"
-GT:     ">"
-LE:     "<="
-GE:     ">="
 
 NAME: /[a-zA-Z_]\w*/
 NUMBER: /\d+(\.\d+)?/

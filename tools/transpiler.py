@@ -12,7 +12,7 @@ class Transpiler:
     class RevertyToPython(Transformer):
         # --- Gestione dei Blocchi ---
         def start(self, items):
-            return "\n".join([str(i) for i in items if i is not None]).strip()
+            return "\n\n\n".join([str(i) for i in items if i is not None]).strip()
 
         def suite(self, items):
             indented_lines = []
@@ -43,8 +43,8 @@ class Transpiler:
 
         # --- Istruzioni di Controllo ---
         def conditional_stmt(self, items):
-            # Unisce if, elif ed else
-            return "\n".join(items)
+            # Unisce if, elif ed else e filtra None
+            return "\n".join(str(i) for i in items if i is not None)
 
         def if_stmt(self, items):
             # Grammatica: ":" expr "fi" suite
@@ -155,6 +155,13 @@ class Transpiler:
         def not_expr(self, items):
             # items: [expr] (perché "ton" è scartato se non nominato come token)
             return f"not {items[0]}"
+
+        def logic_not(self, items):
+            # Handles "add_op NUMBER" (unary plus/minus)
+            # items: [operator_string, number_token]
+            op = items[0]
+            num = str(items[1])
+            return f"{op}{num}"
 
         def comparison(self, items):
             return " ".join(str(i) for i in items)

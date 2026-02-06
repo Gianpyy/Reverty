@@ -24,7 +24,7 @@ class TestGeneratorAgent(Agent):
 
         # Clean up potential markdown formatting
         print(f"[Tester Agent] Response: {response}")
-        test_code = self._extract_json(response)["code"] + "\n"
+        test_code = self.extract_response(response)["code"] + "\n"
 
         return test_code
 
@@ -43,6 +43,6 @@ class TestGeneratorAgent(Agent):
 
         # Clean up potential markdown formatting
         print(f"[Tester Agent] Response: {response}")
-        test_code = self._extract_json(response)["code"] + "\n"
+        test_code = self.extract_response(response)["code"] + "\n"
 
         return test_code

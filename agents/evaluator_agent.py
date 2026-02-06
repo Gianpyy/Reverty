@@ -25,14 +25,14 @@ class EvaluatorAgent(Agent):
 
         # Try to parse JSON
         try:
-            evaluation = self._extract_json(response)
+            evaluation = self.extract_response(response)
 
             # Retry for bad response
             i = 0
             while not isinstance(evaluation.get("complexity"), int) and i < max_retries:
                 i += 1
                 response = self._make_request(user_prompt)
-                evaluation = self._extract_json(response)
+                evaluation = self.extract_response(response)
 
             if not isinstance(evaluation.get("complexity"), int):
                 return {"complexity": 5}  # Default complexity
