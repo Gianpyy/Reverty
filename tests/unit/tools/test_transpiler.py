@@ -11,14 +11,14 @@ def test_transpiler_function(parser, transpiler):
 
     code = """
 : tni -> (tni : x) add_one fed
-    nruter x + 1
+    nruter -1
 """
     result_parse = parser.run(code)
     assert result_parse.status == Status.SUCCESS
     
     result_transpile = transpiler.run(result_parse.message)
     assert result_transpile.status == Status.SUCCESS
-    expected = "def add_one(x: int) -> int:\n    return x + 1"
+    expected = "def add_one(x: int) -> int:\n    return -1"
     assert expected in result_transpile.message
 
 def test_transpiler_conditionals(parser, transpiler):
