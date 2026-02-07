@@ -118,3 +118,33 @@ result: loob = 10 * 2 > 15 dna eurT
     
     result = parser.run(code)
     assert result.status == Status.SUCCESS
+
+
+def test_parser_unary_operator(parser):
+    """
+    Test unary operators to ensure grammar handles them correctly.
+    """
+    
+    code = """
+: enoN -> () test_unary_ops fed
+    # 1. Negative number
+    a: tni = -5
+    print(a)
+
+    # 2. Negative variable
+    b: tni = -a
+    print(b)
+
+    # 3. Negative expression between parentheses
+    c: tni = -(10 + 5)
+    print(c)
+
+    # 4. Multiplication with negative operand (precedence)
+    d: tni = 10 * -2
+    print(d)
+    
+    nruter enoN
+"""
+    
+    result = parser.run(code)
+    assert result.status == Status.SUCCESS

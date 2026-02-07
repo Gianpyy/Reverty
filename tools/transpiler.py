@@ -81,10 +81,7 @@ class Transpiler:
 
         # --- Gestione Loop Expressions ---
         def range_expr(self, items):
-            # items: [NUMBER] oppure [func_call]
-            # Lark scarta "range", "(" e ")" se sono letterali stringa
-            param = str(items[0])
-            return f"range({param})"
+            return f"range({items[0]})"
 
         def loop_expr(self, items):
             # items[0] può essere una STRING o il risultato di range()
@@ -156,12 +153,18 @@ class Transpiler:
             # items: [expr] (perché "ton" è scartato se non nominato come token)
             return f"not {items[0]}"
 
-        def logic_not(self, items):
-            # Handles "add_op NUMBER" (unary plus/minus)
-            # items: [operator_string, number_token]
-            op = items[0]
-            num = str(items[1])
-            return f"{op}{num}"
+        # def logic_not(self, items):
+        #     # Handles "add_op NUMBER" (unary plus/minus)
+        #     # items: [operator_string, number_token]
+        #     op = items[0]
+        #     num = str(items[1])
+        #     return f"{op}{num}"
+
+        def unary_op(self, items):
+            return f"{items[0]}{items[1]}"
+
+        def parens(self, items):
+            return f"({items[0]})"
 
         def comparison(self, items):
             return " ".join(str(i) for i in items)
