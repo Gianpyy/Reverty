@@ -20,7 +20,7 @@ class Orchestrator:
     Orchestrates the entire workflow of the system.
     """
 
-    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK, temperature: float = 0.3, on_log = None):
+    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK, temperature: float = 0.3, api_key: str = None, on_log = None):
         """
         Initializes the Orchestrator with the necessary agents and LLM client.
         """
@@ -38,7 +38,7 @@ class Orchestrator:
 
             case LLMClientType.GITHUB_MODELS:
                 print("[Orchestrator] Using GITHUB MODELS LLM")
-                self.client = GitHubModelsClient(temperature = temperature)
+                self.client = GitHubModelsClient(temperature = temperature, api_key = api_key)
 
             case _:
                 self.client = None
@@ -98,13 +98,15 @@ class Orchestrator:
 
 
         for i in range(MAX_ORCHESTRATOR_ITERATIONS):
-            print(f"[Orchestrator] --------------- Starting iteration {i + 1}/{MAX_ORCHESTRATOR_ITERATIONS} ---------------")
+            print(f"[Orchestrator] --------------- Starting iteration {i + 1}/{MAX_ORCHESTRATOR_ITERATIONS} ---------------{"\033[1m"}")
             log_message(f"----- STARTING ITERATION {i + 1}/{MAX_ORCHESTRATOR_ITERATIONS} -----")
             # 3. Generate Reverty/Python code with result based on request type (starting code generation or fix code)
 
             log_message(f"↺ Generating initial code for {self.request_type.value.upper()} request.")
             result = self._generate_or_fix_code(contract)
-            log_message(f"Initial Reverty code generated:\n{self.reverty_code}")
+
+            st.session_state.shared_reverty_code = self.reverty_code
+            st.session_state.shared_python_code = self.python_code
 
             if result.status == Status.SUCCESS:
                 # 4. Build test suite

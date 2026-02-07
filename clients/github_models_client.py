@@ -8,8 +8,8 @@ class GitHubModelsClient(LLMClient):
     LLM client using GitHub Models API.
     """
 
-    def __init__(self, temperature: float = 0.3):
-        self.github_token = github_token
+    def __init__(self, temperature: float = 0.3, api_key: str = None):
+        self.github_token = api_key
         self.base_url = "https://models.github.ai"
         self.requests = requests
         self.temperature = temperature

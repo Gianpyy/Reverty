@@ -87,7 +87,7 @@ class CoderAgent(Agent):
         Validates Reverty code doing multiple iterations of parsing, transpiling, linting and type checking.
         """
 
-        self.log(f"[Coder Agent] Reverty Code: {json.dumps(reverty_code, indent=2)}")
+        self.log(f"[Coder Agent] Reverty Code:\n {reverty_code}")
         final_status = AnalysisResult(Status.ERROR, "")
 
         try:

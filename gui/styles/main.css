@@ -24,10 +24,44 @@ button[kind="primary"]:hover {
 
 /* Bottone Primary rotondo */
 button[kind="secondary"] {
-    border-radius: 15px;
-    padding: 0.5rem 1.5rem;
-    font-size: 8px !important;
+    border-radius: 8px;
     color: white;
+    border: 1px solid rgb(209, 82, 82) !important;
+    background-color: rgba(255, 0, 0, 0.156);
     width: 80%;
-    height: 20px;
+    height: 5px;
+}
+
+/* Bottone di tipo "tertiary" (quello degli esempi) */
+button[kind="tertiary"] {
+    border-radius: 10px !important;
+    /* Bordi arrotondati */
+    padding: 1rem 1.5rem !important;
+    /* Padding generoso per farlo grande */
+    height: 50px !important;
+    background-color: #191f25;
+    /* Altezza fissa elevata */
+    font-size: 16px !important;
+    /* Dimensione del testo */
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    white-space: normal !important;
+    border: 1px solid rgba(220, 220, 220, 0.141) !important;
+    /* Permette al testo di andare a capo */
+    text-align: center !important;
+    /* Colore di sfondo */
+    color: white !important;
+    /* Colore del testo */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+    /* Ombra leggera */
+    transition: all 0.2s ease !important;
+}
+
+/* Hover effect */
+button[kind="tertiary"]:hover {
+    background-color: #284964 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15) !important;
 }

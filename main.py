@@ -2,6 +2,7 @@ import streamlit as st
 import streamlit_antd_components as sac
 from orchestrator import Orchestrator
 from helpers.enums import LLMClientType
+from config import github_token
 
 def parse_ast_string_to_sac(ast_string):
     """
@@ -37,20 +38,6 @@ def parse_ast_string_to_sac(ast_string):
             
     return items
 
-# def update_log_ui(message, container):
-#     """
-#     Aggiunge un messaggio alla lista dei log e lo visualizza immediatamente.
-#     """
-#     if "log_list" not in st.session_state:
-#         st.session_state.log_list = []
-    
-#     # Aggiungiamo il messaggio alla cronologia
-#     st.session_state.log_list.append(message)
-    
-#     # Visualizziamo nel container usando lo stile chat (che ha lo scroll migliore)
-#     with container:
-#         with st.chat_message("ai"): # Puoi usare un'icona personalizzata qui
-#             st.markdown(f"**{message}**")
 
 def update_log_ui(message, container):
     if "log_list" not in st.session_state:
@@ -66,7 +53,15 @@ def update_log_ui(message, container):
             with st.chat_message("assistant"):
                 st.text(msg)
 
+def reset_generation():
+    st.session_state.log_list = []
+    st.session_state.final_prompt = ""
+    st.session_state.prompt_height = 140
+
 def process_submission():
+
+    reset_generation()
+        
     # 1. Recuperiamo il valore dalla key della text_area
     testo_inserito = st.session_state.get("input_prompt", "")
     
@@ -147,11 +142,11 @@ def main():
         # Nota: usiamo l'URL dell'immagine se possibile, o carichiamola tramite base64 se è locale
         # Ma per semplicità con Streamlit, ecco il metodo ibrido più pulito:
         
-        col_logo_img, col_text_title = st.columns([1.4, 8],gap="xxsmall")
+        col_logo_img, col_text_title = st.columns([1.3, 8])
         with col_logo_img:
-             st.image("./assets/logos/reverty_logo.png", width=160) # Logo più piccolo per stare in linea
+             st.image("./assets/logos/reverty_logo.png", width=130) # Logo più piccolo per stare in linea
         with col_text_title:
-             st.markdown('<p class="gradient-text" style="font-size: 5rem;">Reverty</p>', unsafe_allow_html=True)
+             st.markdown('<p class="gradient-text" style="font-size: 3rem;">Reverty</p>', unsafe_allow_html=True)
 
     st.markdown("<div style='margin-bottom: 4rem;'></div>", unsafe_allow_html=True)
 
@@ -167,6 +162,7 @@ def main():
     # --- INIZIALIZZAZIONE CONFIGURAZIONE ---
     LLM_Model = "Llama 3.2"
     temperature = 0.7
+    st.session_state.api_key = github_token
 
 
     with st.sidebar:
@@ -184,7 +180,7 @@ def main():
         selected_client_enum = client_mapping[selected_client_str]
         
         st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
-        # Slider Temperatura
+        
         temperature = st.slider(
             "Temperature",
             min_value=0.0,
@@ -193,37 +189,25 @@ def main():
             step=0.1,
             help="Controls the model's creativity. Low values (0.0-0.3) = more deterministic, high values (0.7-2.0) = more creative"
         )
+        
+        st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
 
-        if st.button("Reset", use_container_width=True, type="secondary"):
-            st.session_state.clear()
-            st.session_state.input_prompt = ""
-            st.session_state.prompt_height = 140 
-            st.rerun()
+        if selected_client_enum == LLMClientType.GITHUB_MODELS:
+            st.session_state.api_key = st.text_input("API Key", value=st.session_state.api_key, type="password",help="API Key for GitHub Models (optional: took from .env file)")
+
+        if st.session_state.last_run:
+            st.markdown("<div style='margin-top: 20px;'>Generation</div>", unsafe_allow_html=True)
+            if st.button("Reset", use_container_width=True, type="secondary"):
+                reset_generation()
         
-        # Spacer che spinge i link in fondo
-        st.markdown("<div style='flex-grow: 1;'></div>", unsafe_allow_html=True)
+        # Spacer calcolato dinamicamente
+        st.markdown("<div style='height: calc(60vh - 180px);'></div>", unsafe_allow_html=True)
         
-        # Alternativa: usa un container con posizione assoluta
-        st.markdown("""
-            <style>
-            [data-testid="stSidebar"] {
-                display: flex;
-                flex-direction: column;
-            }
-            .sidebar-footer {
-                margin-top: auto;
-                padding-top: 2rem;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-        
-        # Wrapper per i bottoni
-        st.markdown('<div class="sidebar-footer">', unsafe_allow_html=True)
+        # Footer fisso
         sac.buttons([
             sac.ButtonsItem(label='GitHub', icon='github', href='https://github.com/tuo-profilo/reverty'),
-            sac.ButtonsItem(label='Documentation', icon='file-earmark-text'),
+            sac.ButtonsItem(label='Documentation', icon='file-earmark-text', href='https://github.com/Gianpyy/Reverty/blob/main/documentation.pdf'),
         ], align='end', variant='link', size='sm', index=None)
-        st.markdown('</div>', unsafe_allow_html=True)
         
 
     # --- LAYOUT ---
@@ -243,9 +227,6 @@ def main():
                     with st.chat_message("assistant"):
                         st.text(msg)
         
-        # SPAZIO TRA LOG E PROMPT
-        st.markdown("<div style='margin-top: 30px;'></div>", unsafe_allow_html=True)
-        
         # --- LAYOUT DEL PROMPT ---
 
         # Creiamo le colonne per centrare il contenuto
@@ -260,11 +241,13 @@ def main():
             if not st.session_state.get("last_run"):
                 with message_placeholder:
                     message_placeholder.markdown("""
-                        <h2 style='margin: 0;margin-bottom: 40px; color: rgba(255, 255, 255, 0.7);font-weight: 300;'>
+                        <h2 style='margin: 0;margin-bottom: 20px; color: rgba(255, 255, 255, 0.7);font-weight: 300;'>
                             Ready to generate some code?
                         </h2>
                     """, unsafe_allow_html=True)
             # 2. Area di input
+
+            st.markdown("<div style='margin-top: 40px;'></div>", unsafe_allow_html=True)
 
             if "input_prompt" not in st.session_state:
                 st.session_state.input_prompt = ""
@@ -275,7 +258,7 @@ def main():
                 placeholder="Write a function...", 
                 height=st.session_state.prompt_height,
                 label_visibility="collapsed",
-                key="input_prompt" 
+                key="input_prompt" if not st.session_state.get("last_run") else None
             )
 
             btn_run = st.button(
@@ -286,17 +269,10 @@ def main():
             )
         
 
-        # 1. Definizione degli esempi
-        esempi = [
-            "Factorial function", "Fibonacci sequence", 
-            "Bubble sort", "Binary search", 
-            "Matrix multiplication", "REST API Client"
-        ]
-
         # 2. Creazione della griglia 3x2
         # Dividiamo la lista in gruppi di 2 per riga
-        st.markdown("<hr style='margin-bottom: 0px;'>", unsafe_allow_html=True)
-        st.markdown("<h3 style='margin-bottom: 40px; color: rgba(255, 255, 255, 0.9);'>Examples</h3>", unsafe_allow_html=True)
+        st.markdown("<hr style='margin-bottom: 10px;'>", unsafe_allow_html=True)
+        st.markdown("<h3 style='margin-bottom: 20px; color: rgba(255, 255, 255, 0.9);'>Examples</h3>", unsafe_allow_html=True)
         
         esempi = {
             "Factorial function": "Write a function that calculates the factorial of a number.", 
@@ -315,8 +291,6 @@ def main():
             for j in range(3):
                 index = i + j
                 if index < len(lista_esempi):
-                    # label è la chiave (es. "Factorial function")
-                    # prompt è il valore (es. "Write a function...")
                     label, prompt = lista_esempi[index]
                     
                     with cols[j]:
@@ -325,7 +299,8 @@ def main():
                             key=f"ex_{index}", 
                             use_container_width=True,
                             on_click=select_example,
-                            args=(prompt,) # Passiamo il prompt completo alla funzione
+                            args=(prompt,),
+                            type="tertiary"
                         )
 
         # Spazio extra sotto la griglia
@@ -347,20 +322,18 @@ def main():
                 callback = lambda msg: update_log_ui(msg, log_container)
                 
                 # Inizializza Orchestrator
-                orchestrator = Orchestrator(selected_client_enum, temperature, on_log=callback)
+                orchestrator = Orchestrator(selected_client_enum, temperature, api_key = st.session_state.api_key, on_log=callback)
                 
                 # Esecuzione
                 result = orchestrator.run(prompt_utente)
-                
-                # ... resto del codice ...
                     
                 # Recupero AST (se salvato in session_state dall'orchestrator)
                 ast_data = st.session_state.get("shared_ast_string", "")
                 
                 # Salvataggio risultati finali
                 st.session_state.last_run = {
-                    "reverty": result.get("reverty_code", ""),
-                    "python": result.get("python_code", ""),
+                    "reverty": st.session_state.shared_reverty_code,
+                    "python": st.session_state.shared_python_code,
                     "ast": ast_data,
                     "logs": st.session_state.shared_log_string,
                     "success": result.get("status") == "success"
@@ -377,6 +350,22 @@ def main():
     
     res = st.session_state.last_run
     with col_right:
+
+        st.markdown("""
+        <style>
+        /* Centra la lista delle tab nel contenitore padre */
+      
+        /* Gestione spaziatura singole tab */
+        div[data-testid="stTabs"] button {
+            padding-left: 15px;
+            padding-right: 15px;
+            margin-left: 5px;
+            margin-right: 5px;
+        }
+
+        </style>
+        """, unsafe_allow_html=True)
+        
         tab_reverty, tab_python, tab_ast = st.tabs(["Reverty", "Python", "AST Explorer"])
         
         # Gestione Tab Reverty
@@ -390,7 +379,7 @@ def main():
             if res and res.get("python"):
                 st.code(res["python"], language="python")
             else:
-                st.info("No Python code available.", icon="🐍")
+                st.info("No Python code available.")
 
         # Gestione Tab AST
         with tab_ast:
