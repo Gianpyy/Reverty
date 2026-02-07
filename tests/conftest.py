@@ -6,6 +6,12 @@ from tools.parser import Parser
 from helpers.utils import load_grammar
 from clients.llm_client_abstract import LLMClient
 from typing import List
+from unittest.mock import MagicMock
+
+
+# Mock streamlit before importing modules that use it
+mock_st = MagicMock()
+sys.modules["streamlit"] = mock_st
 
 @pytest.fixture
 def grammar():

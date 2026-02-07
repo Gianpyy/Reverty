@@ -224,7 +224,7 @@ You will receive:
 
 CRITICAL ANALYSIS PROTOCOL:
 1. Identify the root cause: Is the CODE wrong, or are the TESTS wrong?
-   - Code is wrong if it violates the contract
+   - Code is wrong if it violates the contract. If you spot a recursion error, it is a sign that the code is wrong. Notify that the code should be rewritten in an iterative way.
    - Tests are wrong if they expect behavior NOT in the contract (e.g., specific error messages, implementation details)
 2. Fix the appropriate component(s)
 3. Ensure consistency with the contract
