@@ -10,9 +10,7 @@ class OllamaClient(LLMClient):
     Requires Ollama to be installed and running.
     """
 
-    def __init__(
-        self, base_url: str = "http://localhost:11434", model: str = "llama3.2"
-    ):
+    def __init__(self, base_url: str = "http://localhost:11434", model: str = "llama3.2"):
         """
         Initialize Ollama client.
         """
@@ -21,9 +19,7 @@ class OllamaClient(LLMClient):
         self.model = model
         self.requests = requests
 
-    def generate(
-        self, user_prompt: str, system_prompt: str = None, model: str = None
-    ) -> str:
+    def generate(self, user_prompt: str, system_prompt: str = None, model: str = None) -> str:
         """
         Generate a response using Ollama.
         """

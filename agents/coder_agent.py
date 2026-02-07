@@ -38,8 +38,9 @@ class CoderAgent(Agent):
         """
         
         self.contract = contract
-        coder_prompt = generate_initial_code_request(contract)
-        reverty_code = self._generate_code(coder_prompt)
+        coder_prompt: str = generate_initial_code_request(contract)
+        print(f"[Coder Agent] Coder Prompt: {coder_prompt}")
+        reverty_code: str = self._generate_code(coder_prompt)
 
         return self._validate_code(reverty_code)
 
@@ -48,8 +49,9 @@ class CoderAgent(Agent):
         Fixes Reverty code based on the contract, python code and errors.
         """
 
-        coder_prompt = generate_test_fix_request(contract, reverty_code, python_code, errors)
-        reverty_code = self._generate_code(coder_prompt)
+        coder_prompt: str = generate_test_fix_request(contract, reverty_code, python_code, errors)
+        print(f"[Coder Agent] Coder Prompt: {coder_prompt}")
+        reverty_code: str = self._generate_code(coder_prompt)
         
         return self._validate_code(reverty_code)
 

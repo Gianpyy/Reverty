@@ -16,15 +16,15 @@ class TestGeneratorAgent(Agent):
         """
         print(f"[Tester] Writing tests for: {contract.get('function_name')}...")
 
-        test_prompt = generate_test_generator_request(contract, python_code)
+        test_prompt: str = generate_test_generator_request(contract, python_code)
 
-        response = self.client.generate(
+        response: str = self.client.generate(
             user_prompt=test_prompt, system_prompt=TESTER_GENERATOR_SYSTEM_PROMPT
         )
 
         # Clean up potential markdown formatting
         print(f"[Tester Agent] Response: {response}")
-        test_code = self.extract_response(response)["code"] + "\n"
+        test_code: str = self.extract_response(response)["code"] + "\n"
 
         return test_code
 
@@ -35,14 +35,14 @@ class TestGeneratorAgent(Agent):
         """
         print(f"[Tester] Fixing tests for: {contract.get('function_name')}...")
 
-        test_prompt = generate_test_generator_fix_request(contract, python_code, test_errors)
+        test_prompt: str = generate_test_generator_fix_request(contract, python_code, test_errors)
 
-        response = self.client.generate(
+        response: str = self.client.generate(
             user_prompt=test_prompt, system_prompt=TESTER_GENERATOR_SYSTEM_PROMPT
         )
 
         # Clean up potential markdown formatting
         print(f"[Tester Agent] Response: {response}")
-        test_code = self.extract_response(response)["code"] + "\n"
+        test_code: str = self.extract_response(response)["code"] + "\n"
 
         return test_code

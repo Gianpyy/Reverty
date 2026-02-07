@@ -12,9 +12,9 @@ class Agent:
         self.client = client
 
     def extract_response(self, response: str) -> Dict[str, Any]:
-        """Robustly extracts JSON from a string, handling markdown and extra text."""
+        """Robustly extracts response from a string, handling markdown and extra text."""
 
-        print(f"[EXTRACT JSON] Response: {response}")
+        print(f"[EXTRACT RESPONSE] Response: {response}")
 
         # 1. Try direct parsing a JSON object
         try:

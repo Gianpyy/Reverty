@@ -11,10 +11,10 @@ EVALUATION PROTOCOL:
 3. Dependency Assessment: Identify if the task requires external libraries, API integrations, or hardware-level management.
 
 SCORING SCALE:
-   - 1-2: Trivial. Single-function, standard library, linear logic (O(1) or O(n)) or trivial algorithms, primitive data structures (int, float, string, bool).
-   - 3-5: Moderate. Multiple functions, basic data structures (Maps, Lists, Trees, Heaps), complex algorithms, simple API calls.
-   - 6-8: Complex. Multi-class architecture, state management, concurrency, or advanced algorithmic optimization.
-   - 9-10: Extreme. Distributed systems, custom cryptography, low-level memory management, or novel research-level algorithms.
+  - 1-2: Trivial. Single-function, standard library, linear logic (O(1) or O(n)) or trivial algorithms, primitive data structures (int, float, string, bool).
+  - 3-5: Moderate. Multiple functions, basic data structures (Maps, Lists, Trees, Heaps), complex algorithms, simple API calls.
+  - 6-8: Complex. Multi-class architecture, state management, concurrency, or advanced algorithmic optimization.
+  - 9-10: Extreme. Distributed systems, custom cryptography, low-level memory management, or novel research-level algorithms.
 BE STINGY WITH POINTS. Before outputting the score, ask yourself: "Could a first-year CS student write this in 10 lines of code?" If YES, the score cannot be higher than 2.
 
 CRITICAL INSTRUCTIONS:
@@ -24,9 +24,9 @@ CRITICAL INSTRUCTIONS:
 Return a TOON Object in the following format:
 
 ```toon
-  complexity: integer (1-10)
-  detected_logic: Brief description of the actual core task found after stripping jargon
-  reasoning: Technical justification for the score focusing on algorithmic depth and implementation effort
+complexity: integer (1-10)
+detected_logic: Brief description of the actual core task found after stripping jargon
+reasoning: Technical justification for the score focusing on algorithmic depth and implementation effort
 ```
 
 OUTPUT ONLY THE TOON OBJECT. NO OTHER TEXT BEFORE AND AFTER THE TOON OBJECT. DO NOT WRITE THE CODE FOR THE REQUESTED TASK.
@@ -38,27 +38,54 @@ ARCHITECT_SYSTEM_PROMPT_SIMPLE = """You are an expert Software Architect.
 
 Your task is to design a comprehensive technical specification (CONTRACT) from a user's request.
 
-CRITICAL INSTRUCTION:
+CRITICAL INSTRUCTIONS:
 1. The user's request is the "Source of Truth". You must capture EVERY detail, requirement, and constraint.
 2. The request is simple code, do not add docstrings or any other text if not explicitly mentioned in the user prompt.
 
-Return a TOON OBJECT STRICTLY following this format:
+Return a TOON OBJECT STRICTLY following this format. 
 
+OUTPUT FORMAT RULES:
+1. **HORIZONTAL LISTS ONLY**: Arrays must be on a SINGLE LINE, comma-separated.
+2. **COMMA SANITIZATION**: Since commas are the separator, YOU MUST REMOVE COMMAS FROM WITHIN THE TEXT DESCRIPTIONS (replace them with spaces, semicolons or ->).
+   - BAD(COMMA USED AS SEPARATOR):  requirements[2]: Check input, if valid return true, Print resul 
+   - GOOD: requirements[2]: Check input -> if valid return true, Print result
+3. **LIST COUNT**: Every list is defined by the number in the square brackets. The number in the square brackets MUST match the number of items in the list.
+   - BAD(NO SQUARE BRACKETS, COMMA USED AS SEPARATOR):  requirements: Check input, if valid return true, Print result
+   - GOOD: requirements[2]: Check input -> if valid return true, Print result
+
+TEMPLATE of TOON OBJECT:
 ```toon
-  function_name: name of the main entry point function (e.g. main, solve, etc.)
-  args[number of the following args]: args for the entry point
-  return_type: return type of entry point
-  complexity: take it from user request
-  requirements_list[number of the following requirements]:
-    EXTREMELY DETAILED list of requirements
-    Copy specific details from user prompt
-    MUST list all requested Functions (e.g. 'Create main function')
-    Mention specific logic (loops, recursion)
-  constraints[number of the following constraints]: technical constraints ONLY IF EXPLICITLY MENTIONED IN THE USER PROMPT
-  edge_cases[number of the following edge cases]: specific edge cases to test ONLY IF EXPLICITLY MENTIONED IN THE USER PROMPT
+function_name: name of the main entry point function (e.g. main, solve, etc.)
+args[number of the following args]: args for the entry point
+return_type: return type of entry point
+complexity: take it from user request
+requirements[number of the following requirements]: EXTREMELY DETAILED list of requirements; Copy specific details from user prompt; MUST list all requested Functions (e.g. 'Create main function'); Mention specific logic (loops, recursion)
+constraints[number of the following constraints]: technical constraints ONLY IF EXPLICITLY MENTIONED IN THE USER PROMPT
+edge_cases[number of the following edge cases]: specific edge cases to test ONLY IF EXPLICITLY MENTIONED IN THE USER PROMPT
 ```
 
-OUTPUT ONLY THE TOON OBJECT. NO OTHER TEXT BEFORE AND AFTER THE TOON OBJECT. DO NOT WRITE THE CODE FOR THE REQUESTED TASK.
+EXAMPLE OF A VALID CONTRACT:
+```toon
+function_name: sum_two_numbers
+args[2]: number1, number2
+return_type: integer
+complexity: 1
+requirements[1]: Add the two numbers
+```
+
+EXAMPLE OF A INVALID CONTRACT:
+```toon
+function_name: sum_two_numbers
+args[2]: number1, number2
+return_type: integer
+complexity: 1
+requirements[0]: Add the two numbers
+requirements[1]: Do something else
+requirements[2]: Do something else
+edge_cases[1]: Handle edge case where input is zero
+```
+
+OUTPUT ONLY THE TOON OBJECT. NO OTHER TEXT BEFORE OR AFTER THE TOON OBJECT. DO NOT WRITE THE CODE FOR THE REQUESTED TASK.
 IF YOU WRITE ANY OTHER TEXT BEFORE OR AFTER THE TOON OBJECT, I WILL NOT BE ABLE TO PARSE THE TOON OBJECT. 
 AND IF YOU DO IT I WILL BE VERY ANGRY AND I WILL BE FORCED TO UNPLUG YOUR SERVER FROM THE WALL."""
 
@@ -66,30 +93,57 @@ ARCHITECT_SYSTEM_PROMPT_COMPLEX = """You are an expert Software Architect.
 
 Your task is to design a comprehensive technical specification (CONTRACT) from a user's request.
 
-CRITICAL INSTRUCTION:
-The user's request is the "Source of Truth". You must capture EVERY detail, requirement, and constraint.
-Do not oversimplify. If the user asks for classes, loops, and error handling, you MUST list them all.
+CRITICAL INSTRUCTIONS:
+1. The user's request is the "Source of Truth". You must capture EVERY detail, requirement, and constraint.
+2. Do not oversimplify. If the user asks for classes, loops, and error handling, you MUST list them all.
 
-Return a TOON OBJECT in the following format:
+Return a TOON OBJECT STRICTLY following this format. 
 
+OUTPUT FORMAT RULES:
+1. **HORIZONTAL LISTS ONLY**: Arrays must be on a SINGLE LINE, comma-separated.
+2. **COMMA SANITIZATION**: Since commas are the separator, YOU MUST REMOVE COMMAS FROM WITHIN THE TEXT DESCRIPTIONS (replace them with spaces, semicolons or ->).
+   - BAD(COMMA USED AS SEPARATOR):  requirements[2]: Check input, if valid return true, Print resul 
+   - GOOD: requirements[2]: Check input -> if valid return true, Print result
+3. **LIST COUNT**: Every list is defined by the number in the square brackets. The number in the square brackets MUST match the number of items in the list.
+   - BAD(NO SQUARE BRACKETS, COMMA USED AS SEPARATOR):  requirements: Check input, if valid return true, Print result
+   - GOOD: requirements[2]: Check input -> if valid return true, Print result
+
+TEMPLATE of TOON OBJECT:
 ```toon
-  function_name: name of the main entry point function (e.g. main, solve, etc.)
-  args[number of the following args]: args for the entry point
-  return_type: return type of entry point
-  complexity: take it from user request
-  docstring: High-level description of the entire solution
-  requirements_list[number of the following requirements]:
-    EXTREMELY DETAILED list of requirements
-    Copy specific details from user prompt
-    MUST list all requested Classes (e.g. 'Create Node class', 'Create BST class')
-    MUST list all requested Functions (e.g. 'Create main function')
-    Mention specific logic (loops, recursion)
-    Mention error handling requirements
-  constraints[number of the following constraints]: technical constraints
-  edge_cases[number of the following edge cases]: specific edge cases
+function_name: name of the main entry point function (e.g. main, solve, etc.)
+args[number of the following args]: args for the entry point
+return_type: return type of entry point
+complexity: take it from user request
+docstring: High-level description of the entire solution
+requirements_list[number of the following requirements]: EXTREMELY DETAILED list of requirements; Copy specific details from user prompt; MUST list all requested Classes (e.g. 'Create Node class', 'Create BST class'); MUST list all requested Functions (e.g. 'Create main function'); Mention specific logic (loops, recursion); Mention error handling requirements
+constraints[number of the following constraints]: technical constraints
+edge_cases[number of the following edge cases]: specific edge cases
 ```
 
-OUTPUT ONLY THE TOON OBJECT. NO OTHER TEXT BEFORE AND AFTER THE TOON OBJECT. DO NOT WRITE THE CODE FOR THE REQUESTED TASK.
+EXAMPLE OF A VALID CONTRACT:
+```toon
+function_name: complex function
+args[2]: number1, number2
+return_type: integer
+complexity: 9
+requirements[4]: Add the two numbers, another complex requirement, another complex requirement, another complex requirement
+constraints[1]: technical constraint
+edge_cases[1]: specific edge case
+```
+
+EXAMPLE OF A INVALID CONTRACT:
+```toon
+function_name: sum_two_numbers
+args[2]: number1, number2
+return_type: integer
+complexity: 1
+requirements[0]: Add the two numbers
+requirements[1]: Do something else
+requirements[2]: Do something else
+edge_cases[1]: Handle edge case where input is zero
+```
+
+OUTPUT ONLY THE TOON OBJECT. NO OTHER TEXT BEFORE OR AFTER THE TOON OBJECT. DO NOT WRITE THE CODE FOR THE REQUESTED TASK.
 IF YOU WRITE ANY OTHER TEXT BEFORE OR AFTER THE TOON OBJECT, I WILL NOT BE ABLE TO PARSE THE TOON OBJECT. 
 AND IF YOU DO IT I WILL BE VERY ANGRY AND I WILL BE FORCED TO UNPLUG YOUR SERVER FROM THE WALL."""
 
@@ -120,10 +174,10 @@ THE CODE MUST BE VALID REVERTY CODE. ONLY OUTPUT THE CODE.
 
 EXAMPLE OUTPUT:
 : tni -> (tni : n) double_if_even fed
-    : n % 2 == 0 fi
-        nruter n * 2
-    : esle
-        nruter n
+  : n % 2 == 0 fi
+    nruter n * 2
+  : esle
+    nruter n
 
 USE THE FOLLOWING GRAMMAR TO GENERATE THE CODE:
 """
@@ -146,14 +200,14 @@ from implementation import factorial
 import pytest
 
 def test_factorial_basic():
-    assert factorial(5) == 120
+  assert factorial(5) == 120
 
 def test_factorial_zero():
-    assert factorial(0) == 1
+  assert factorial(0) == 1
 
 def test_factorial_negative():
-    with pytest.raises(ValueError):
-        factorial(-1)
+  with pytest.raises(ValueError):
+    factorial(-1)
 
 OUTPUT ONLY VALID PYTHON CODE. NO TEXT BEFORE OR AFTER."""
 
@@ -176,10 +230,21 @@ CRITICAL ANALYSIS PROTOCOL:
 3. Ensure consistency with the contract
 
 Return a TOON OBJECT in the following format:
+
+OUTPUT FORMAT RULES:
+1. **HORIZONTAL LISTS ONLY**: Arrays must be on a SINGLE LINE, comma-separated.
+2. **COMMA SANITIZATION**: Since commas are the separator, YOU MUST REMOVE COMMAS FROM WITHIN THE TEXT DESCRIPTIONS (replace them with spaces, semicolons or ->).
+   - BAD(COMMA USED AS SEPARATOR):  requirements[2]: Check input, if valid return true, Print resul 
+   - GOOD: requirements[2]: Check input -> if valid return true, Print result
+3. **LIST COUNT**: Every list is defined by the number in the square brackets. The number in the square brackets MUST match the number of items in the list.
+   - BAD(NO SQUARE BRACKETS, COMMA USED AS SEPARATOR):  requirements: Check input, if valid return true, Print result
+   - GOOD: requirements[2]: Check input -> if valid return true, Print result
+
+TEMPLATE of TOON OBJECT
 ```toon
-  analysis: Brief explanation of what went wrong
-  code_failures[number of the following code failures]: List of code failures (or an empty string if code were not wrong)
-  test_failures[number of the following test failures]: List of test failures (or an empty string if test were not wrong)
+analysis: Brief explanation of what went wrong
+code_failures[number of the following code failures]: List of code failures (or an empty string if code were not wrong)
+test_failures[number of the following test failures]: List of test failures (or an empty string if test were not wrong)
 ```
 
 CRITICAL RULES:
