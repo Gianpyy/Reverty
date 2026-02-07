@@ -12,7 +12,7 @@ from helpers.enums import LLMClientType
 from clients.ollama_client import OllamaClient
 from clients.github_models_client import GitHubModelsClient
 from helpers.enums import Status, RequestType
-from config import MAX_ORCHESTRATOR_ITERATIONS, OLLAMA_LLM_MODEL
+from config import MAX_ORCHESTRATOR_ITERATIONS, MAX_VALIDATION_ITERATIONS
 import streamlit as st
 
 class Orchestrator:
@@ -20,7 +20,7 @@ class Orchestrator:
     Orchestrates the entire workflow of the system.
     """
 
-    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK, temperature: float = 0.3, api_key: str = None, on_log = None):
+    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK, temperature: float = 0.3, api_key: str = None, on_log = None, max_orchestrator_iterations: int = MAX_ORCHESTRATOR_ITERATIONS, max_validation_iterations: int = MAX_VALIDATION_ITERATIONS):
         """
         Initializes the Orchestrator with the necessary agents and LLM client.
         """
@@ -46,7 +46,7 @@ class Orchestrator:
         # Agents
         self.evaluator = EvaluatorAgent(self.client)
         self.architect = ArchitectAgent(self.client)
-        self.coder = CoderAgent(self.client, self.grammar)
+        self.coder = CoderAgent(self.client, self.grammar, max_validation_iterations=max_validation_iterations)
         self.test_generator = TestGeneratorAgent(self.client)
         self.tester = TesterAgent(self.client)
 
@@ -57,6 +57,10 @@ class Orchestrator:
         self.tests: str | None = None
         self.code_errors: str | None = None
         self.test_errors: str | None = None
+
+        # Iteration limits
+        self.max_orchestrator_iterations = max_orchestrator_iterations
+        self.max_validation_iterations = max_validation_iterations
 
         # Set logger for agents
         self.set_logger(on_log)
@@ -81,6 +85,7 @@ class Orchestrator:
         Executes the entire compilation and translation workflow.
         """
 
+        
         print(f"--- Starting Workflow for: {user_prompt} ---")
 
         log_message(f"↺ Generating {self.request_type.value.upper()} for the requested task.")
@@ -97,9 +102,11 @@ class Orchestrator:
         log_message(f"Technical Contract Created:\n{formatted_contract}")
 
 
-        for i in range(MAX_ORCHESTRATOR_ITERATIONS):
-            print(f"[Orchestrator] --------------- Starting iteration {i + 1}/{MAX_ORCHESTRATOR_ITERATIONS} ---------------{"\033[1m"}")
-            log_message(f"----- STARTING ITERATION {i + 1}/{MAX_ORCHESTRATOR_ITERATIONS} -----")
+        print("[Orchestrator] Max orchestrator iterations: ", self.max_orchestrator_iterations)
+        print("[Orchestrator] Max validation iterations: ", self.max_validation_iterations)
+        for i in range(self.max_orchestrator_iterations):
+            print(f"[Orchestrator] --------------- Starting iteration {i + 1}/{self.max_orchestrator_iterations} --------------------------")
+            log_message(f"----- STARTING ITERATION {i + 1}/{self.max_orchestrator_iterations} -----")
             # 3. Generate Reverty/Python code with result based on request type (starting code generation or fix code)
 
             log_message(f"↺ Generating initial code for {self.request_type.value.upper()} request.")

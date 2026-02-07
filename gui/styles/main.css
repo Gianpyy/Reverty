@@ -28,9 +28,10 @@ button[kind="secondary"] {
     color: white;
     border: 1px solid rgb(209, 82, 82) !important;
     background-color: rgba(255, 0, 0, 0.156);
-    width: 80%;
+    width: 50%;
     height: 5px;
 }
+
 
 /* Bottone di tipo "tertiary" (quello degli esempi) */
 button[kind="tertiary"] {

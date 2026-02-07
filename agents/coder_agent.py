@@ -22,7 +22,7 @@ class CoderAgent(Agent):
     Uses LLM to generate code based on a contract.
     """
 
-    def __init__(self, client, grammar, model="llama3.2"):
+    def __init__(self, client, grammar, model="llama3.2", max_validation_iterations: int = MAX_VALIDATION_ITERATIONS):
         super().__init__(client)
         self.model = model
         self.grammar = grammar
@@ -31,6 +31,7 @@ class CoderAgent(Agent):
         self.transpiler = Transpiler()
         self.linter = Linter()
         self.type_checker = TypeChecker()
+        self.max_validation_iterations = max_validation_iterations
         
 
     def build_initial_code(self, contract: Dict[str, Any]) -> Tuple[str, str, AnalysisResult]:
@@ -91,8 +92,8 @@ class CoderAgent(Agent):
         final_status = AnalysisResult(Status.ERROR, "")
 
         try:
-            for i in range(MAX_VALIDATION_ITERATIONS):
-                self.log(f"\n[Coder Agent] --------------- Starting validation loop: iteration {i + 1}/{MAX_VALIDATION_ITERATIONS} ---------------")
+            for i in range(self.max_validation_iterations):
+                self.log(f"\n[Coder Agent] --------------- Starting validation loop: iteration {i + 1}/{self.max_validation_iterations} ----------------------------")
 
                 # --- PARSING ---
                 # Parse Reverty code to AST
