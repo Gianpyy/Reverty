@@ -1,10 +1,9 @@
-from helpers.enums import Status
+from helpers.enums import Status, ExecutionResult
 from typing import Dict, Any
 from agents.agent import Agent
 from helpers.system_prompts import TESTER_SYSTEM_PROMPT
 from helpers.prompt_generator import generate_tester_request
 from tools.test_executor import TestExecutor
-
 
 class TesterAgent(Agent):
     """
@@ -25,7 +24,7 @@ class TesterAgent(Agent):
         self.log(f"[Tester] Tests: \n{tests}")
 
         # Run tests
-        test_result = self.executor.run_tests(python_code, tests)
+        test_result: ExecutionResult = self.executor.run_tests(python_code, tests)
 
         self.log(f"[Tester] Test result in run tests: {test_result}")
         if test_result.status == Status.SUCCESS:
@@ -34,27 +33,23 @@ class TesterAgent(Agent):
                 "message": "Tests passed successfully.",
             }
         else:
-            error_output = test_result.code_failures
-            failed_tests = test_result.failed_tests
+            error_output: str = test_result.code_failures
+            failed_tests: str = test_result.failed_tests
 
-            tester_prompt = generate_tester_request(
+            tester_prompt: str = generate_tester_request(
                 contract, python_code, reverty_code, tests, failed_tests, error_output
             )
 
-            response = self.client.generate(
+            response_raw: str = self.client.generate(
                 user_prompt=tester_prompt, system_prompt=TESTER_SYSTEM_PROMPT
             )
 
-            response_json = self._extract_json(response)
+            response: Dict[str, Any] = self.extract_response(response_raw)
 
-            final_result = {
+            final_result: Dict[str, Any] = {
                 "status": Status.ERROR.value,
-                "code_failures": response_json.get("code_failures")
-                if response_json.get("code_failures") != ""
-                else None,
-                "test_failures": response_json.get("test_failures")
-                if response_json.get("test_failures") != ""
-                else None,
+                "code_failures": response.get("code_failures") if response.get("code_failures") != "" else None,
+                "test_failures": response.get("test_failures") if response.get("test_failures") != "" else None,
             }
 
         return final_result

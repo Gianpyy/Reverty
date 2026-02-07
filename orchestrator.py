@@ -14,6 +14,8 @@ from clients.github_models_client import GitHubModelsClient
 from helpers.enums import Status, RequestType
 from config import MAX_ORCHESTRATOR_ITERATIONS, MAX_VALIDATION_ITERATIONS
 import streamlit as st
+from typing import Dict, Any
+
 
 class Orchestrator:
     """
@@ -91,13 +93,13 @@ class Orchestrator:
         log_message(f"↺ Generating {self.request_type.value.upper()} for the requested task.")
 
         # 1. Evaluate complexity
-        complexity = self._evaluate_request_complexity(user_prompt)
+        complexity: int = self._evaluate_request_complexity(user_prompt)
 
         log_message(f"Evaluated complexity of the requested task is {complexity}")
         print(f"[Orchestrator] Complexity: {complexity}")
 
         # 2. Define requirements and create the contract
-        contract = self._design_technical_contract(user_prompt, complexity)
+        contract: Dict[str, Any] = self._design_technical_contract(user_prompt, complexity)
         formatted_contract = json.dumps(contract, indent=2, ensure_ascii=False)
         log_message(f"Technical Contract Created:\n{formatted_contract}")
 
@@ -110,7 +112,7 @@ class Orchestrator:
             # 3. Generate Reverty/Python code with result based on request type (starting code generation or fix code)
 
             log_message(f"↺ Generating initial code for {self.request_type.value.upper()} request.")
-            result = self._generate_or_fix_code(contract)
+            result: AnalysisResult = self._generate_or_fix_code(contract)
 
             st.session_state.shared_reverty_code = self.reverty_code
             st.session_state.shared_python_code = self.python_code
@@ -157,19 +159,19 @@ class Orchestrator:
         """
 
         print("[Orchestrator] Evaluating request...")
-        evaluation = self.evaluator.evaluate_request(user_prompt)
-        return evaluation["complexity"]
+        complexity: int = self.evaluator.evaluate_request(user_prompt)
+        return complexity
 
-    def _design_technical_contract(self, user_prompt: str, complexity: int):
+    def _design_technical_contract(self, user_prompt: str, complexity: int) -> Dict[str, Any]:
         """
         Interacts with the Architect Agent to define the technical requirements.
         """
         
         print("[Orchestrator] Designing technical contract...")
-        contract = self.architect.create_contract(user_prompt, complexity)
+        contract: Dict[str, Any] = self.architect.create_contract(user_prompt, complexity)
         return contract
 
-    def _generate_or_fix_code(self, contract) -> AnalysisResult:
+    def _generate_or_fix_code(self, contract: Dict[str, Any]) -> AnalysisResult:
         """
         Interacts with the CoderAgent to generate Reverty code with its Python equivalent.
         """
@@ -186,7 +188,7 @@ class Orchestrator:
 
         return AnalysisResult(status=Status.SUCCESS, message="No coding actions needed.")
 
-    def _generate_or_fix_tests(self, contract):
+    def _generate_or_fix_tests(self, contract: Dict[str, Any]):
         """
         Interacts with the Tester Agent to generate tests.
         """

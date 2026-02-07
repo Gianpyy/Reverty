@@ -31,16 +31,16 @@ class ArchitectAgent(Agent):
             )
             system_prompt = ARCHITECT_SYSTEM_PROMPT_COMPLEX
 
-        request = generate_architect_request(user_prompt, complexity)
-        response = self.client.generate(
-            user_prompt=request, system_prompt=system_prompt
-        )
+        request: str = generate_architect_request(user_prompt, complexity)
+        print(f"[Architect Agent] Request: {request}")
+        response: str = self.client.generate(user_prompt=request, system_prompt=system_prompt)
 
-        # Try to parse JSON
+        # Try to parse response
         try:
-            contract = self._extract_json(response)
+            contract: Dict[str, Any] = self.extract_response(response)
             return contract
         except json.JSONDecodeError as e:
             self.log(f"[Architect Agent] Error decoding JSON: {e}")
             self.log(f"[Architect Agent] Response was: {response[:200]}")
             return {}
+

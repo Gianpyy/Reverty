@@ -14,9 +14,7 @@ class GitHubModelsClient(LLMClient):
         self.requests = requests
         self.temperature = temperature
 
-    def generate(
-        self, user_prompt: str, system_prompt: str = None, model: str = "gpt-4o"
-    ) -> str:
+    def generate(self, user_prompt: str, system_prompt: str = None, model: str = "gpt-4o") -> str:
         """
         Generate a response using GitHub Models API.
         """

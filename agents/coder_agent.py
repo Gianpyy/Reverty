@@ -77,7 +77,7 @@ class CoderAgent(Agent):
         )
 
         self.log(f"[Coder Agent] Response: {response}")
-        reverty_code_json = self._extract_json(response)
+        reverty_code_json = self.extract_response(response)
         reverty_code = reverty_code_json["code"] + "\n"
 
         return reverty_code
@@ -264,6 +264,6 @@ class CoderAgent(Agent):
             system_prompt=CODER_SYSTEM_PROMPT + "\n\n" + self.grammar,
         )
 
-        fix_result = self._extract_json(response)
+        fix_result = self.extract_response(response)
 
         return fix_result["code"]
