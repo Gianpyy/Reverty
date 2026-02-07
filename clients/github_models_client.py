@@ -1,7 +1,6 @@
 import requests
 from config import github_token
 from clients.llm_client_abstract import LLMClient
-from config import LLM_TEMPERATURE
 
 
 class GitHubModelsClient(LLMClient):
@@ -9,10 +8,11 @@ class GitHubModelsClient(LLMClient):
     LLM client using GitHub Models API.
     """
 
-    def __init__(self):
-        self.github_token = github_token
+    def __init__(self, temperature: float = 0.3, api_key: str = None):
+        self.github_token = api_key
         self.base_url = "https://models.github.ai"
         self.requests = requests
+        self.temperature = temperature
 
     def generate(self, user_prompt: str, system_prompt: str = None, model: str = "gpt-4o") -> str:
         """
@@ -36,7 +36,7 @@ class GitHubModelsClient(LLMClient):
             payload = {
                 "model": model,
                 "messages": messages,
-                "temperature": LLM_TEMPERATURE,
+                "temperature": self.temperature,
                 "max_tokens": 4000,
             }
 

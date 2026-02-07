@@ -22,7 +22,7 @@ class CoderAgent(Agent):
     Uses LLM to generate code based on a contract.
     """
 
-    def __init__(self, client, grammar, model="llama3.2"):
+    def __init__(self, client, grammar, model="llama3.2", max_validation_iterations: int = MAX_VALIDATION_ITERATIONS):
         super().__init__(client)
         self.model = model
         self.grammar = grammar
@@ -31,6 +31,8 @@ class CoderAgent(Agent):
         self.transpiler = Transpiler()
         self.linter = Linter()
         self.type_checker = TypeChecker()
+        self.max_validation_iterations = max_validation_iterations
+        
 
     def build_initial_code(self, contract: Dict[str, Any]) -> Tuple[str, str, AnalysisResult]:
         """
@@ -38,9 +40,13 @@ class CoderAgent(Agent):
         """
         
         self.contract = contract
-        coder_prompt: str = generate_initial_code_request(contract)
-        print(f"[Coder Agent] Coder Prompt: {coder_prompt}")
-        reverty_code: str = self._generate_code(coder_prompt)
+        coder_prompt = generate_initial_code_request(contract)
+
+        self.log(f"[CODER] Initial code prompt:\n{coder_prompt}")
+
+        reverty_code = self._generate_code(coder_prompt)
+
+        self.log(f"[CODER] Initial code:\n{reverty_code}")
 
         return self._validate_code(reverty_code)
 
@@ -49,10 +55,14 @@ class CoderAgent(Agent):
         Fixes Reverty code based on the contract, python code and errors.
         """
 
-        coder_prompt: str = generate_test_fix_request(contract, reverty_code, python_code, errors)
-        print(f"[Coder Agent] Coder Prompt: {coder_prompt}")
-        reverty_code: str = self._generate_code(coder_prompt)
-        
+        coder_prompt = generate_test_fix_request(contract, reverty_code, python_code, errors)
+
+        self.log(f"Fix code prompt:\n{coder_prompt}")
+
+        reverty_code = self._generate_code(coder_prompt)
+
+        self.log(f"Fixed code:\n{coder_prompt}")
+
         return self._validate_code(reverty_code)
 
     def _generate_code(self, coder_prompt: str) -> str:
@@ -66,7 +76,7 @@ class CoderAgent(Agent):
             system_prompt=CODER_SYSTEM_PROMPT + "\n\n" + self.grammar,
         )
 
-        print(f"[Coder Agent] Response: {response}")
+        self.log(f"[Coder Agent] Response: {response}")
         reverty_code_json = self.extract_response(response)
         reverty_code = reverty_code_json["code"] + "\n"
 
@@ -78,12 +88,12 @@ class CoderAgent(Agent):
         Validates Reverty code doing multiple iterations of parsing, transpiling, linting and type checking.
         """
 
-        print(f"[Coder Agent] Reverty Code: {json.dumps(reverty_code, indent=2)}")
+        self.log(f"[Coder Agent] Reverty Code:\n {reverty_code}")
         final_status = AnalysisResult(Status.ERROR, "")
 
         try:
-            for i in range(MAX_VALIDATION_ITERATIONS):
-                print(f"\n[Coder Agent] --------------- Starting validation loop: iteration {i + 1}/{MAX_VALIDATION_ITERATIONS} ---------------")
+            for i in range(self.max_validation_iterations):
+                self.log(f"\n[Coder Agent] --------------- Starting validation loop: iteration {i + 1}/{self.max_validation_iterations} ----------------------------")
 
                 # --- PARSING ---
                 # Parse Reverty code to AST
@@ -135,7 +145,7 @@ class CoderAgent(Agent):
 
                 final_status = AnalysisResult(Status.SUCCESS, "Code built successfully.")
 
-                print("[Coder] Python code: ", python_code)
+                self.log(f"[Coder] Python code: {python_code}")
 
                 return reverty_code, python_code, final_status
 
@@ -146,7 +156,7 @@ class CoderAgent(Agent):
             )
 
         finally:
-            print(f"[Coder] Finished execution with status: {final_status.status.value}")
+            self.log(f"[Coder] Finished execution with status: {final_status.status.value}")
 
         return reverty_code, "", final_status
 
@@ -248,7 +258,7 @@ class CoderAgent(Agent):
         )
 
         # Call LLM
-        print(f"\n[Coder Agent] Fix Prompt: {fix_prompt}")
+        self.log(f"\n[Coder Agent] Fix Prompt: {fix_prompt}")
         response = self.client.generate(
             user_prompt=fix_prompt,
             system_prompt=CODER_SYSTEM_PROMPT + "\n\n" + self.grammar,

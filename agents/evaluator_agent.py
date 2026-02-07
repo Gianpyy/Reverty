@@ -15,7 +15,7 @@ class EvaluatorAgent(Agent):
         """
         Evaluates the complexity of a user prompt to create an adequate contract for the requested code.
         """
-        print(f"[Evaluator Agent] Evaluating request: '{user_prompt}'...")
+        self.log(f"[Evaluator Agent] Evaluating request: '{user_prompt}'...")
 
         response: str = self._make_request(user_prompt)
 
@@ -35,8 +35,8 @@ class EvaluatorAgent(Agent):
 
             return evaluation["complexity"]
         except json.JSONDecodeError as e:
-            print(f"[Evaluator Agent] Error decoding JSON: {e}")
-            print(f"[Evaluator Agent] Response was: {response[:200]}")
+            self.log(f"[Evaluator Agent] Error decoding JSON: {e}")
+            self.log(f"[Evaluator Agent] Response was: {response[:200]}")
             return 5 # Default complexity
 
 

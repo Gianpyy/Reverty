@@ -14,7 +14,7 @@ class TestGeneratorAgent(Agent):
         Generates pytest tests based on the contract and implementation code.
 
         """
-        print(f"[Tester] Writing tests for: {contract.get('function_name')}...")
+        self.log(f"[Tester] Writing tests for: {contract.get('function_name')}...")
 
         test_prompt: str = generate_test_generator_request(contract, python_code)
 
@@ -23,7 +23,7 @@ class TestGeneratorAgent(Agent):
         )
 
         # Clean up potential markdown formatting
-        print(f"[Tester Agent] Response: {response}")
+        self.log(f"[Tester Agent] Response: {response}")
         test_code: str = self.extract_response(response)["code"] + "\n"
 
         return test_code
@@ -33,7 +33,7 @@ class TestGeneratorAgent(Agent):
         Fixes pytest tests based on the contract and implementation code.
 
         """
-        print(f"[Tester] Fixing tests for: {contract.get('function_name')}...")
+        self.log(f"[Tester] Fixing tests for: {contract.get('function_name')}...")
 
         test_prompt: str = generate_test_generator_fix_request(contract, python_code, test_errors)
 
@@ -42,7 +42,7 @@ class TestGeneratorAgent(Agent):
         )
 
         # Clean up potential markdown formatting
-        print(f"[Tester Agent] Response: {response}")
+        self.log(f"[Tester Agent] Response: {response}")
         test_code: str = self.extract_response(response)["code"] + "\n"
 
         return test_code

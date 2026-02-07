@@ -10,6 +10,21 @@ class Agent:
 
     def __init__(self, client):
         self.client = client
+        self.on_log = None
+
+    def set_logger(self, on_log):
+        """
+        Sets the logging callback.
+        """
+        self.on_log = on_log
+
+    def log(self, message: str):
+        """
+        Logs a message using the callback if available, otherwise prints it.
+        """
+        if self.on_log:
+            self.on_log(message)
+        print(message)
 
     def extract_response(self, response: str) -> Dict[str, Any]:
         """Robustly extracts response from a string, handling markdown and extra text."""
