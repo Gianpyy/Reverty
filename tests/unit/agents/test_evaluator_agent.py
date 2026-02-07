@@ -21,7 +21,7 @@ def test_evaluator_success(SequentialMockLLM):
 
     # Execute
     result = agent.evaluate_request("s1mple task")
-    assert result["complexity"] == 3
+    assert result == 3
     assert mock_client.call_count == 1
 
 def test_evaluator_retry(SequentialMockLLM):
@@ -42,7 +42,7 @@ def test_evaluator_retry(SequentialMockLLM):
 
     # Execute
     result = agent.evaluate_request("medium task")
-    assert result["complexity"] == 5
+    assert result == 5
     assert mock_client.call_count == 2
 
 def test_evaluator_max_retries_exceeded(SequentialMockLLM):
@@ -57,9 +57,8 @@ def test_evaluator_max_retries_exceeded(SequentialMockLLM):
     mock_client = SequentialMockLLM(responses=[bad_response, bad_response, bad_response, bad_response])
     agent = EvaluatorAgent(client=mock_client)
 
-    # Execute with max_retries=2 to make it faster
-    result = agent.evaluate_request("task difficile", max_retries=2)
-    assert result["complexity"] == 5
+    result = agent.evaluate_request("task difficile")
+    assert result == 5
     assert mock_client.call_count >= 3 
 
 def test_evaluator_broken_response(SequentialMockLLM):
@@ -70,4 +69,4 @@ def test_evaluator_broken_response(SequentialMockLLM):
     agent = EvaluatorAgent(client=mock_client)
 
     result = agent.evaluate_request("test")
-    assert result == {"complexity": 5}
+    assert result == 5
