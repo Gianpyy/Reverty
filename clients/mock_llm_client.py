@@ -3,9 +3,7 @@ import json
 
 
 class MockLLMClient(LLMClient):
-    def generate(
-        self, user_prompt: str, system_prompt: str = None, model: str = "mock"
-    ) -> str:
+    def generate(self, user_prompt: str, system_prompt: str = None, model: str = "mock") -> str:
         """
         Generate a hardcoded response.
         """

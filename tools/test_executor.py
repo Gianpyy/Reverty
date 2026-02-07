@@ -49,18 +49,32 @@ class TestExecutor:
                 #   return self._mock_run_tests(code, tests)
                 
                 success = result.returncode == 0
-                output = result.stdout + result.stderr
+                raw_output = result.stdout + result.stderr
+
+                # Truncate output if too long
+                # Useful as a workaround for online LLMs that have a max token limit
+                MAX_CHARS = 2500  
+                if len(raw_output) > MAX_CHARS:
+                    half = MAX_CHARS // 2
+                    omitted = len(raw_output) - MAX_CHARS
+                    final_output = (
+                        raw_output[:half] 
+                        + f"\n\n... [LOG TRUNCATED: {omitted} chars omitted to hide recursion loops] ...\n\n" 
+                        + raw_output[-half:]
+                    )
+                else:
+                    final_output = raw_output
 
                 print("[EXECUTOR] stdout:", result.stdout)
                 print("[EXECUTOR] output:", result.stderr)
                 print("[EXECUTOR] return code:", result.returncode)
 
                 
-                failed_tests = self._parse_failures(output) if not success else []
+                failed_tests = self._parse_failures(final_output) if not success else []
                 
                 return ExecutionResult(
                     status=Status.SUCCESS if success else Status.ERROR,
-                    code_failures=output,
+                    code_failures=final_output,
                     failed_tests=failed_tests
                 )
             

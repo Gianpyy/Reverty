@@ -20,9 +20,7 @@ class OllamaClient(LLMClient):
         self.requests = requests
         self.temperature = temperature
 
-    def generate(
-        self, user_prompt: str, system_prompt: str = None, model: str = None
-    ) -> str:
+    def generate(self, user_prompt: str, system_prompt: str = None, model: str = None) -> str:
         """
         Generate a response using Ollama.
         """
