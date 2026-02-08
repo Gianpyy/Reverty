@@ -202,7 +202,7 @@ def main():
         # Footer with links to GitHub and docs
         sac.buttons([
             sac.ButtonsItem(label='GitHub', icon='github', href='https://github.com/Gianpyy/reverty'),
-            sac.ButtonsItem(label='Documentation', icon='file-earmark-text', href='https://github.com/Gianpyy/Reverty/blob/main/documentation.pdf'),
+            sac.ButtonsItem(label='Documentation', icon='file-earmark-text', href='https://github.com/Gianpyy/Reverty/blob/main/docs/TechnicalDocument.pdf'),
         ], align='end', variant='link', size='sm', index=None)
 
 
