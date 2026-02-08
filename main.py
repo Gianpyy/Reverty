@@ -26,12 +26,15 @@ def update_log_ui(message, container):
 def reset_generation():
     """Resets generation state variables and clears logs."""
     st.session_state.log_list = []
+    st.session_state.last_run = None
     st.session_state.final_prompt = ""
     st.session_state.prompt_height = 140
+    st.session_state.input_prompt = ""
 
 def process_submission():
     """Processes the input submission: resets generation and stores the current prompt."""
-    reset_generation()
+    if st.session_state.last_run:
+        reset_generation()
         
     testo_inserito = st.session_state.get("input_prompt", "")
     st.session_state.final_prompt = testo_inserito
@@ -50,7 +53,7 @@ def main():
     # Streamlit page configuration
     st.set_page_config(
         page_title="Reverty", 
-        page_icon="🐍", 
+        page_icon="./assets/logos/reverty_logo.png",
         layout="wide",
         initial_sidebar_state="expanded"
     )
@@ -122,8 +125,7 @@ def main():
         st.session_state.prompt_height = 140
 
     # Default configuration for model and temperature
-    LLM_Model = "Llama 3.2"
-    temperature = 0.7
+    temperature = 0.3
     st.session_state.api_key = github_token
 
 
@@ -135,11 +137,34 @@ def main():
         
         # Select LLM client type
         client_mapping = {
-            "Mock Client": LLMClientType.MOCK, 
+            "GitHub Models": LLMClientType.GITHUB_MODELS,
             "Ollama": LLMClientType.OLLAMA, 
-            "GitHub Models": LLMClientType.GITHUB_MODELS
+            "Mock Client": LLMClientType.MOCK, 
         }
+        st.markdown("""
+            <style>
+            div[data-baseweb="select"] > div {
+                cursor: pointer !important;
+            }
+            </style>
+            """, unsafe_allow_html=True)
+
         selected_client_str = st.selectbox("Client LLM", list(client_mapping.keys()))
+
+        # Inizializza la variabile se non esiste
+        if "previous_client" not in st.session_state:
+            st.session_state.previous_client = selected_client_str
+
+        if selected_client_str == "Mock Client":
+            select_example(examples.get("Factorial function"))
+        elif st.session_state.previous_client != selected_client_str:
+            # Resetta solo se il client è cambiato
+            st.session_state.input_prompt = ""
+
+        # Aggiorna il client precedente
+        st.session_state.previous_client = selected_client_str
+
+
         selected_client_enum = client_mapping[selected_client_str]
         
         st.markdown("<div style='margin-top: 10px;'></div>", unsafe_allow_html=True)
@@ -159,6 +184,7 @@ def main():
         
         st.slider("Orchestrator", min_value=0, max_value=20, value=3, step=1, key="max_orchestrator_iterations")
         st.slider("Validation", min_value=0, max_value=20, value=3, step=1, key="max_validation_iterations")
+        st.slider("Evaluation", min_value=0, max_value=20, value=3, step=1, key="max_evaluation_retries")
 
         st.markdown("<div style='margin-top: 1s0px;'></div>", unsafe_allow_html=True)
 
@@ -167,14 +193,15 @@ def main():
             st.session_state.api_key = st.text_input("API Key", value=st.session_state.api_key, type="password",help="API Key for GitHub Models (optional: took from .env file)")
 
         if st.session_state.last_run:
-            st.markdown("<div style='margin-top: 20px;font-size: 0.9rem;margin-bottom: 5px;'>Generation</div>", unsafe_allow_html=True)
+            st.markdown("<div style='margin-top: 20px;font-size: 0.9rem;margin-bottom: 5px;'></div>", unsafe_allow_html=True)
             if st.button("Reset", use_container_width=True, type="secondary"):
                 reset_generation()
+                st.rerun()
         
+        st.markdown("<div style='margin-top: 60px;'></div>", unsafe_allow_html=True)
         # Footer with links to GitHub and docs
-        st.markdown("<div style='height: calc(60vh - 300px);'></div>", unsafe_allow_html=True)
         sac.buttons([
-            sac.ButtonsItem(label='GitHub', icon='github', href='https://github.com/tuo-profilo/reverty'),
+            sac.ButtonsItem(label='GitHub', icon='github', href='https://github.com/Gianpyy/reverty'),
             sac.ButtonsItem(label='Documentation', icon='file-earmark-text', href='https://github.com/Gianpyy/Reverty/blob/main/documentation.pdf'),
         ], align='end', variant='link', size='sm', index=None)
 
@@ -202,7 +229,7 @@ def main():
                 with message_placeholder:
                     message_placeholder.markdown("""
                         <h2 style='margin: 0;margin-bottom: 20px; color: rgba(255, 255, 255, 0.7);font-weight: 300;'>
-                            Ready to generate some code?
+                            Ready to generate some <i>edoc</i>?
                         </h2>
                     """, unsafe_allow_html=True)
             
@@ -210,7 +237,7 @@ def main():
 
             if "input_prompt" not in st.session_state:
                 st.session_state.input_prompt = "" 
-
+            
             prompt_utente = st.text_area(
                 "Requisiti del Codice",
                 placeholder="Write a function...",
@@ -265,7 +292,8 @@ def main():
                     api_key=st.session_state.api_key, 
                     on_log=callback,
                     max_orchestrator_iterations=st.session_state.max_orchestrator_iterations,
-                    max_validation_iterations=st.session_state.max_validation_iterations
+                    max_validation_iterations=st.session_state.max_validation_iterations,
+                    max_evaluation_retries=st.session_state.max_evaluation_retries,
                 )
                 
                 result = orchestrator.run(prompt_utente)

@@ -11,6 +11,10 @@ class EvaluatorAgent(Agent):
     to create an adequate contract for the requested code.
     """
 
+    def __init__(self, client, max_evaluation_retries: int = MAX_EVALUATION_RETRIES):
+        super().__init__(client)
+        self.max_evaluation_retries = max_evaluation_retries
+
     def evaluate_request(self, user_prompt: str) -> int:
         """
         Evaluates the complexity of a user prompt to create an adequate contract for the requested code.
@@ -25,7 +29,7 @@ class EvaluatorAgent(Agent):
 
             # Retry for bad response
             i = 0
-            while not isinstance(evaluation.get("complexity"), int) and i < MAX_EVALUATION_RETRIES:
+            while not isinstance(evaluation.get("complexity"), int) and i < self.max_evaluation_retries:
                 i += 1
                 response: str = self._make_request(user_prompt)
                 evaluation: Dict[str, Any] = self.extract_response(response)
