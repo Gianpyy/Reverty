@@ -184,6 +184,7 @@ def main():
         
         st.slider("Orchestrator", min_value=0, max_value=20, value=3, step=1, key="max_orchestrator_iterations")
         st.slider("Validation", min_value=0, max_value=20, value=3, step=1, key="max_validation_iterations")
+        st.slider("Evaluation", min_value=0, max_value=20, value=3, step=1, key="max_evaluation_retries")
 
         st.markdown("<div style='margin-top: 1s0px;'></div>", unsafe_allow_html=True)
 
@@ -192,13 +193,13 @@ def main():
             st.session_state.api_key = st.text_input("API Key", value=st.session_state.api_key, type="password",help="API Key for GitHub Models (optional: took from .env file)")
 
         if st.session_state.last_run:
-            st.markdown("<div style='margin-top: 20px;font-size: 0.9rem;margin-bottom: 5px;'>Generation</div>", unsafe_allow_html=True)
+            st.markdown("<div style='margin-top: 20px;font-size: 0.9rem;margin-bottom: 5px;'></div>", unsafe_allow_html=True)
             if st.button("Reset", use_container_width=True, type="secondary"):
                 reset_generation()
                 st.rerun()
         
+        st.markdown("<div style='margin-top: 60px;'></div>", unsafe_allow_html=True)
         # Footer with links to GitHub and docs
-        st.markdown("<div style='height: calc(60vh - 400px);'></div>", unsafe_allow_html=True)
         sac.buttons([
             sac.ButtonsItem(label='GitHub', icon='github', href='https://github.com/Gianpyy/reverty'),
             sac.ButtonsItem(label='Documentation', icon='file-earmark-text', href='https://github.com/Gianpyy/Reverty/blob/main/documentation.pdf'),
@@ -236,7 +237,7 @@ def main():
 
             if "input_prompt" not in st.session_state:
                 st.session_state.input_prompt = "" 
-
+            
             prompt_utente = st.text_area(
                 "Requisiti del Codice",
                 placeholder="Write a function...",
@@ -291,7 +292,8 @@ def main():
                     api_key=st.session_state.api_key, 
                     on_log=callback,
                     max_orchestrator_iterations=st.session_state.max_orchestrator_iterations,
-                    max_validation_iterations=st.session_state.max_validation_iterations
+                    max_validation_iterations=st.session_state.max_validation_iterations,
+                    max_evaluation_retries=st.session_state.max_evaluation_retries,
                 )
                 
                 result = orchestrator.run(prompt_utente)

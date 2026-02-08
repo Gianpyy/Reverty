@@ -12,7 +12,7 @@ from helpers.enums import LLMClientType
 from clients.ollama_client import OllamaClient
 from clients.github_models_client import GitHubModelsClient
 from helpers.enums import Status, RequestType
-from config import MAX_ORCHESTRATOR_ITERATIONS, MAX_VALIDATION_ITERATIONS
+from config import MAX_ORCHESTRATOR_ITERATIONS, MAX_VALIDATION_ITERATIONS, MAX_EVALUATION_RETRIES
 import streamlit as st
 from typing import Dict, Any
 
@@ -22,7 +22,16 @@ class Orchestrator:
     Orchestrates the entire workflow of the system.
     """
 
-    def __init__(self, llm_client_type: LLMClientType = LLMClientType.MOCK, temperature: float = 0.3, api_key: str = None, on_log = None, max_orchestrator_iterations: int = MAX_ORCHESTRATOR_ITERATIONS, max_validation_iterations: int = MAX_VALIDATION_ITERATIONS):
+    def __init__(
+        self, 
+        llm_client_type: LLMClientType = LLMClientType.MOCK, 
+        temperature: float = 0.3, 
+        api_key: str = None, 
+        on_log = None, 
+        max_orchestrator_iterations: int = MAX_ORCHESTRATOR_ITERATIONS, 
+        max_validation_iterations: int = MAX_VALIDATION_ITERATIONS, 
+        max_evaluation_retries: int = MAX_EVALUATION_RETRIES
+    ):
         """
         Initializes the Orchestrator with the necessary agents and LLM client.
         """
@@ -46,7 +55,7 @@ class Orchestrator:
                 self.client = None
 
         # Agents
-        self.evaluator = EvaluatorAgent(self.client)
+        self.evaluator = EvaluatorAgent(self.client, max_evaluation_retries=max_evaluation_retries)
         self.architect = ArchitectAgent(self.client)
         self.coder = CoderAgent(self.client, self.grammar, max_validation_iterations=max_validation_iterations)
         self.test_generator = TestGeneratorAgent(self.client)

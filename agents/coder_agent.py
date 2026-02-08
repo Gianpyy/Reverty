@@ -42,11 +42,11 @@ class CoderAgent(Agent):
         self.contract = contract
         coder_prompt = generate_initial_code_request(contract)
 
-        self.log(f"[CODER] Initial code prompt:\n{coder_prompt}")
+        self.log(f"[Coder Agent] Initial code prompt:\n{coder_prompt}")
 
         reverty_code = self._generate_code(coder_prompt)
 
-        self.log(f"[CODER] Initial code:\n{reverty_code}")
+        self.log(f"[Coder Agent] Initial code:\n{reverty_code}")
 
         return self._validate_code(reverty_code)
 
@@ -57,11 +57,11 @@ class CoderAgent(Agent):
 
         coder_prompt = generate_test_fix_request(contract, reverty_code, python_code, errors)
 
-        self.log(f"Fix code prompt:\n{coder_prompt}")
+        self.log(f"[Coder Agent] Fix code prompt:\n{coder_prompt}")
 
         reverty_code = self._generate_code(coder_prompt)
 
-        self.log(f"Fixed code:\n{coder_prompt}")
+        self.log(f"[Coder Agent] Fixed code:\n{coder_prompt}")
 
         return self._validate_code(reverty_code)
 
@@ -145,7 +145,7 @@ class CoderAgent(Agent):
 
                 final_status = AnalysisResult(Status.SUCCESS, "Code built successfully.")
 
-                self.log(f"[Coder] Python code: {python_code}")
+                self.log(f"[Coder Agent] Python code: {python_code}")
 
                 return reverty_code, python_code, final_status
 

@@ -19,14 +19,14 @@ class TesterAgent(Agent):
         Analyzes test failures and notifies issues with either the code or tests.
         """
 
-        self.log("[Tester] Testing...")
-        self.log(f"[Tester] Python code: \n{python_code}")
-        self.log(f"[Tester] Tests: \n{tests}")
+        self.log("[Tester Agent] Testing...")
+        self.log(f"[Tester Agent] Python code: \n{python_code}")
+        self.log(f"[Tester Agent] Tests: \n{tests}")
 
         # Run tests
         test_result: ExecutionResult = self.executor.run_tests(python_code, tests)
 
-        self.log(f"[Tester] Test result in run tests: {test_result}")
+        self.log(f"[Tester Agent] Test result in run tests: {test_result.status.value}")
         if test_result.status == Status.SUCCESS:
             return {
                 "status": Status.SUCCESS.value,
